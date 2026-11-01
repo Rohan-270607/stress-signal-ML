@@ -57,11 +57,11 @@ Division of work (decided by the user): **project owner (the user) = ML track + 
 | 10 | Verify and localise helpline numbers in `ml/src/safety.py` | Owner | Numbers **verified 2026-11-01**; which countries/order to show is still open |
 | 11 | Decide decision threshold (0.5 now) with the team | Owner + teammate | Provisional: keep 0.5 (evidence in DECISIONS D-08); team to confirm |
 | 12 | Push to GitHub, add the teammate as collaborator (section 3) | Owner | Pushed 2026-11-01 (commit 3a4de7a). **Still to do by hand: add the teammate as a collaborator** |
-| 13 | Frontend (section 8) | Teammate | **Not started** (after exams) |
-| 14 | Wire frontend to API and test end to end | Teammate + Owner | Not started |
+| 13 | Frontend (section 8) | Teammate | Done 2026-11-01 (branch `frontend`, React + TypeScript + Vite, freeform + guided inquiries, verbatim crisis override banner, soft gauge, SHAP bars, non-clinical disclaimer) |
+| 14 | Wire frontend to API and test end to end | Teammate + Owner | Done 2026-11-01 (wired to FastAPI `http://localhost:8000/analyze`, verified with sample prompts, crisis trigger, and guided inquiries) |
 | 15 | Validate on consented student journal data before any real use | Owner + teammate | Not started |
-| 16 | Write the fixed list of guided journaling prompts (see section 8a) | Owner + teammate | DRAFT written (`docs/journaling_prompts.json`, 6 prompts, tested); needs human review |
-| 17 | Decide how answers are scored (section 8a) | Owner + teammate | Provisional: per-answer mean (DECISIONS D-15, measured) |
+| 16 | Write the fixed list of guided journaling prompts (see section 8a) | Owner + teammate | Done (wired from `docs/journaling_prompts.json`, 6 prompts, tested in UI) |
+| 17 | Decide how answers are scored (section 8a) | Owner + teammate | Done: per-answer mean implemented in frontend (DECISIONS D-15) |
 
 Last verified: 69 tests pass (feature extractor 13, safety 40, API 13). Everything in rows 0-8 was actually run; the
 numbers in `ml/REPORT.md` were produced by the code, not typed by hand.
