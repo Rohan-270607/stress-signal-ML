@@ -42,12 +42,13 @@ sentence-structure features (would need spaCy/NLTK models and add opacity).
 ## D-05 Lexicons
 **Chose:** Plain-text files in `ml/lexicons/`.
 * `first_person_singular.txt`: i, me, my, mine, myself, plus contractions (i'm, i've, i'll, i'd, im, ive).
-* `absolutist.txt`: the 19-word list from Al-Mosaiwi & Johnstone (2018) plus 4 additions marked as mine. **The list was
-  written from memory of the paper. Partly verified against the open-access article (PMC6376956): the body confirms
-  always, totally, entire, completely, nothing and definitely, and says anything/need/needed were removed (none is in our list).
-  The other words await Table S2 of the paper's supplement, which has not been read. The paper also warns of false
-  positives from negation ("not completely"), qualifiers ("almost completely") and salutations ("hello everyone");
-  our counter has no such protection, so `everyone` in a greeting counts.**
+* `absolutist.txt`: the 19-word list from Al-Mosaiwi & Johnstone (2018) plus 4 additions marked as mine. **Verified 2026-11-01** against
+  the paper's Supplemental Table S2 (19 words): all 19 are present, and the paper's removed words (anything/need/needed)
+  are not in our list. The 4 extras (forever, everybody, nobody, entirely) are mine, not from the paper; they were kept
+  because they were disclosed from the start and the brief listed absolutist words with "etc.". Dropping them to match
+  the published list exactly would need a retrain and re-run (an open option). The paper also warns of false positives
+  from negation ("not completely"), qualifiers ("almost completely") and salutations ("hello everyone"); our counter
+  has no such protection, so `everyone` in a greeting counts.**
 * `negation.txt` plus a rule that any token ending in `n't` counts.
 * `negative_emotion.txt`: union of NRC EmoLex words flagged `negative`, `anger`, `fear` or `sadness` (3,722 words).
 **Why for NRC:** it is free for research, widely cited, and the specified source. `negative` alone is a sentiment flag;
@@ -96,6 +97,11 @@ the identical configuration with the identical CV log loss (0.5467). The grid wa
 **Chose:** 0.5 on the predicted probability (`higher_signal` iff score ≥ 0.5).
 **Why:** Classes are balanced (52% positive), no cost asymmetry has been agreed, and any other threshold would need
 tuning on data I have not set aside. The score is returned alongside the label so the UI can show a gradient.
+**Evidence (task 11, `src/design_checks.py`, out-of-fold on train only, AUC 0.793):** F1 is 0.742 at 0.5 and peaks at 0.766 at
+0.4, but only by flagging 67% of texts (recall 0.87, precision 0.68), the same F1-rewards-over-flagging effect as in D-06.
+At 0.5 the model flags 56% of texts when the true share is 53%, i.e. roughly balanced. Threshold 0.7 gives precision 0.81
+but recall 0.46. **Provisional: keep 0.5.** Moving it is a product decision about which error costs more (a missed signal vs
+a needless flag) and should be made with the team; full table in `reports/design_checks.json`.
 **Alternatives:** Lower the threshold to favour recall (reasonable if missing stress is worse than false alarms; needs a
 stakeholder decision and a separate validation set); Youden's J from CV predictions.
 
@@ -157,3 +163,29 @@ patient/clinical/therap/advice confirmed this.)
 * `nltk`/`spacy` were allowed but unnecessary: a regex tokenizer is enough and keeps behaviour transparent.
 * No hyper-parameter search beyond the small grids above, no feature selection, no ensembling, and no probability
   calibration step (LR with log-loss tuning is approximately calibrated; I did not measure calibration).
+
+## D-15 Multi-answer entries: score each answer, then average (task 17)
+**Chose (provisional):** When a student answers several guided prompts, call `/analyze` **once per answer** and report the
+**mean** of the `stress_score` values; the label uses the same 0.5 threshold on that mean; `crisis_flag` is true if **any**
+answer is flagged. No API change.
+**Why (measured, `src/design_checks.py`, out-of-fold on train only, 7,000 simulated 4-answer entries, same-label answers):**
+* Joining the answers into one text (about 343 words, far beyond the training average of 86 and near its 310-word maximum)
+  **breaks the model**: 99.4% of calm entries were flagged "higher" (AUC 0.896 but useless at 0.5) because the length feature
+  and the rates saturate outside the training range.
+* Scoring each answer and averaging: AUC 0.948; calm entries flagged 16.8%, stress entries flagged 92.4%.
+* This **reverses my earlier recommendation** (one combined call), which was based on reasoning, not measurement.
+**Caveats:** the simulated entries group answers of the same label, which is cleaner than real entries; individual answers
+should be at least ~30 words (see the instability note in the contract); it is evidence on Reddit data, not on student
+journals. The same length effect means any single text over ~300 words is outside the training range.
+**Alternatives:** one combined call (rejected by the measurement above); per-answer display only, no overall score (valid if
+the team prefers; the data are still computed per answer); a new `/analyze_entry` endpoint (not needed for now).
+
+## D-16 Guided journaling prompts (task 16)
+**Chose:** A fixed, human-reviewed list of 6 neutral prompts in `docs/journaling_prompts.json` (status **DRAFT**: the wording,
+language and cultural fit need human review before students see them). Tests (`tests/test_prompts.py`) block diagnosis,
+advice, self-harm and distress-presupposing wording.
+**Why:** Prompts that already say "stress" or "worry" would prime students toward the vocabulary the model rewards.
+They do not ask about self-harm; the safety layer only watches what students choose to write, and that stays a
+product/ethics decision for the team and a counsellor.
+**Alternatives:** Prompts generated by an AI at runtime (rejected: unreviewed text in front of students); a validated
+questionnaire (a different kind of measurement; needs licence and scoring review).

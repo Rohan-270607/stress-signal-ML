@@ -78,6 +78,11 @@ curl -X POST http://localhost:8000/analyze -H "Content-Type: application/json" \
   them a lot. Measured on the test set: score standard deviation was 0.39 for texts under 30 words (only 7 texts,
   so treat as indicative) versus about 0.20-0.28 for longer ones. Consider a hint such as "longer entries give
   steadier results".
+* **Multi-answer entries (guided prompts): score each answer separately.** Call `/analyze` once per answer, show the
+  mean of the `stress_score` values as the overall signal (label `higher_signal` iff mean >= 0.5), and treat the entry as
+  crisis-flagged if **any** response has `crisis_flag: true`. **Do not join answers into one long text**: measured on
+  training data, ~99% of calm four-answer entries were pushed to "higher". Prompts: `docs/journaling_prompts.json`.
+  Texts much longer than ~300 words are outside the range the model was trained on.
 * **Text length itself affects the score** (longer text pushes it up; see `ml/REPORT.md`).
 * **The model is weak by design** (see `ml/REPORT.md`): about 73% F1 on Reddit data. Present the score as a soft
   signal, not a verdict.

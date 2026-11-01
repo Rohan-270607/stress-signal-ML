@@ -62,7 +62,7 @@ Feature extractor demo: `.venv\Scripts\python -m src.features`.
 .venv\Scripts\python -m pytest tests -q
 ```
 
-66 tests: feature extractor (13), safety layer (40), API (13). API tests use the real saved model, so run
+69 tests: feature extractor (13), safety layer (40), API (13), journaling prompts (3). API tests use the real saved model, so run
 `src.train_models` first.
 
 ## Run the API

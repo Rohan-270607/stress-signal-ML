@@ -53,24 +53,25 @@ Division of work (decided by the user): **project owner (the user) = ML track + 
 | 6 | Rule-based safety layer + 40 test cases | Owner | Done |
 | 7 | FastAPI (`/analyze`, `/health`), validation, 13 tests, contract in `docs/api_contract.md` | Owner | Done |
 | 8 | `REPORT.md`, `DECISIONS.md`, `ml/README.md`, self-review | Owner | Done |
-| 9 | Verify absolutist word list against the paper appendix | Owner | **Partly done**; blocked on reading Table S2 (see section 7, item 1) |
+| 9 | Verify absolutist word list against the paper appendix | Owner | Done 2026-11-01 (see section 7, item 1) |
 | 10 | Verify and localise helpline numbers in `ml/src/safety.py` | Owner | Numbers **verified 2026-11-01**; which countries/order to show is still open |
-| 11 | Decide decision threshold (0.5 now) with the team | Owner + teammate | **To do** |
-| 12 | Create the GitHub repo, push, add the teammate as collaborator (section 3) | Owner | **To do** |
+| 11 | Decide decision threshold (0.5 now) with the team | Owner + teammate | Provisional: keep 0.5 (evidence in DECISIONS D-08); team to confirm |
+| 12 | Push to GitHub, add the teammate as collaborator (section 3) | Owner | Pushed 2026-11-01 (commit 3a4de7a). **Still to do by hand: add the teammate as a collaborator** |
 | 13 | Frontend (section 8) | Teammate | **Not started** (after exams) |
 | 14 | Wire frontend to API and test end to end | Teammate + Owner | Not started |
 | 15 | Validate on consented student journal data before any real use | Owner + teammate | Not started |
-| 16 | Write the fixed list of guided journaling prompts (human-written, reviewed; see section 8a) | Owner + teammate | Not started |
-| 17 | Decide how answers are scored: one combined call vs one call per answer (section 8a) | Owner + teammate | Not started |
+| 16 | Write the fixed list of guided journaling prompts (see section 8a) | Owner + teammate | DRAFT written (`docs/journaling_prompts.json`, 6 prompts, tested); needs human review |
+| 17 | Decide how answers are scored (section 8a) | Owner + teammate | Provisional: per-answer mean (DECISIONS D-15, measured) |
 
-Last verified: 66 tests pass (feature extractor 13, safety 40, API 13). Everything in rows 0-8 was actually run; the
+Last verified: 69 tests pass (feature extractor 13, safety 40, API 13). Everything in rows 0-8 was actually run; the
 numbers in `ml/REPORT.md` were produced by the code, not typed by hand.
 
 ## 3. GitHub repository and collaboration
 
 **Repo URL:** https://github.com/Rohan-270607/stress-signal-ML  (owner: Rohan-270607)
-Status when this file was written: the local project folder was **not yet a git repo and had not been pushed**.
-Check `git status` / `git remote -v` before assuming otherwise.
+Status: the ML track was pushed to `main` on 2026-11-01 (commit `3a4de7a`, on top of the GitHub-generated initial
+commit that contains only `README.md`). The commands below are the record of how it was done; do not re-run `git init`.
+Changes made after that commit (such as this section) are local until committed and pushed.
 
 First-time setup, from `T:\project_specula` (owner does this once):
 
@@ -123,7 +124,7 @@ python -m venv .venv
 .venv\Scripts\python -m src.build_nrc_lexicon
 
 # everyday
-.venv\Scripts\python -m pytest tests -q                              # expect 66 passed
+.venv\Scripts\python -m pytest tests -q                              # expect 69 passed
 .venv\Scripts\python -m uvicorn api.main:app --port 8000             # API at http://localhost:8000/docs
 .venv\Scripts\python -m src.train_models                             # retrain + re-save the model
 .venv\Scripts\python -m src.final_eval                               # reproducibility + leakage assertions
@@ -174,15 +175,15 @@ Errors: `422` (bad input, FastAPI default body) and `503` (model failed; body st
 
 ## 7. Open items (only the user can resolve these; ask, don't guess)
 
-1. Finish verifying `ml/lexicons/absolutist.txt` (task 9). PARTLY DONE: the article body (PMC6376956) confirms always,
-   totally, entire, completely, nothing, definitely and excludes anything/need/needed. The full 19-word list is in
-   Table S2 of the supplement, a PDF at
-   `https://pmc.ncbi.nlm.nih.gov/articles/instance/6376956/bin/Table_S2_Supplemental_Material.pdf` that must be
-   downloaded (needs the user's explicit OK, or the user can open it and paste the words). The remaining words are unverified.
+1. DONE 2026-11-01: `ml/lexicons/absolutist.txt` verified against the paper's Supplemental Table S2: all 19 words match.
+   The 4 extra words (forever, everybody, nobody, entirely) are the project author's own. OPEN OPTION: remove them to
+   match the published list exactly (needs retrain + re-run of `final_eval` + report update).
 2. Helpline numbers in `CRISIS_MESSAGE` (`ml/src/safety.py`) were verified on 2026-11-01 against official sites (US 988,
    UK Samaritans 116 123, India Tele-MANAS 14416 / 1-800-891-4416, findahelpline.com). STILL OPEN: which countries to
    show and in what order (depends on where students are). Re-check periodically.
-3. Decide the decision threshold (currently 0.5, `ml/api/main.py` `THRESHOLD`; DECISIONS D-08).
+3. Confirm the decision threshold (provisionally 0.5, `ml/api/main.py` `THRESHOLD`; evidence in DECISIONS D-08), the
+   per-answer-mean scoring (D-15) and the draft prompts (D-16). Moving the threshold is a product decision about which
+   error costs more.
 4. Validate on consented student journal data before real use (trained on Reddit only).
 5. `git init` the repo before sharing.
 
@@ -211,11 +212,10 @@ Design rules:
   neutral and non-leading; no diagnostic or advice wording; no questions that ask about self-harm directly (the
   safety layer only watches what students choose to write).
 * Run the safety check on **every** answer, and show the crisis message as soon as any answer is flagged.
-* Open decision (task 17). Option A, **one combined call**: join all answers into one text and call `/analyze` once;
-  steadier scores (short answers under ~30 words give unstable scores), one explanation. Option B, **one call per
-  answer**: finer feedback but noisier. Recommended default: A, plus the per-answer crisis check. Whichever is chosen,
-  document it in `ml/DECISIONS.md` and, if the API changes, in `docs/api_contract.md`.
-* The current contract already supports A and B with no API change.
+* Scoring (task 17, DECIDED provisionally, DECISIONS D-15): call `/analyze` **once per answer** and show the **mean**
+  score; crisis flag if **any** answer is flagged. Do NOT join answers into one text: measured to flag ~99% of calm entries.
+  Encourage at least ~30 words per answer. The fixed prompts are in `docs/journaling_prompts.json` (DRAFT, needs human review).
+* The current contract already supports this with no API change.
 * Not in scope here: chat replies, storing entries over time, questionnaires. Those each need a separate decision
   (storage means consent and retention rules).
 

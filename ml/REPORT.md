@@ -149,8 +149,8 @@ labelled crisis data here, so I cannot report how many real crisis texts it miss
    120 false "higher signal" and 88 false "lower signal". The baseline misclassifies 191 (27%).
 6. **Length and style confounds** (section 4), including features tied to how Reddit users write.
 7. **Lexicon limits.** Word lists ignore context, sarcasm, spelling variants, slang and non-English text. The negative
-   emotion list (NRC) marks the *word*, so "not sad" still counts "sad". The absolutist list was written from memory of
-   the published list; only part of it has been checked against the paper (see DECISIONS D-05). The paper also warns that
+   emotion list (NRC) marks the *word*, so "not sad" still counts "sad". The absolutist list contains the paper's 19 words
+   (verified against its Supplemental Table S2) plus 4 of my own (see DECISIONS D-05). The paper also warns that
    negation, qualifiers and salutations ("hello everyone") inflate such counts; this extractor does not guard against them.
 8. **Safety layer is a net, not a classifier** (README). Unmeasured recall; English only; no context understanding.
 9. **Single split, single seed.** The test set is 715 rows; intervals above show the uncertainty. No repeated-split or

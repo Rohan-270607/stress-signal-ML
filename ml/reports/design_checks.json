@@ -1,0 +1,69 @@
+{
+  "threshold_table_oof": [
+    {
+      "threshold": 0.3,
+      "precision": 0.635,
+      "recall": 0.932,
+      "f1": 0.756,
+      "share_flagged_higher": 0.773
+    },
+    {
+      "threshold": 0.4,
+      "precision": 0.683,
+      "recall": 0.871,
+      "f1": 0.766,
+      "share_flagged_higher": 0.672
+    },
+    {
+      "threshold": 0.45,
+      "precision": 0.704,
+      "recall": 0.826,
+      "f1": 0.76,
+      "share_flagged_higher": 0.618
+    },
+    {
+      "threshold": 0.5,
+      "precision": 0.72,
+      "recall": 0.766,
+      "f1": 0.742,
+      "share_flagged_higher": 0.56
+    },
+    {
+      "threshold": 0.55,
+      "precision": 0.746,
+      "recall": 0.695,
+      "f1": 0.72,
+      "share_flagged_higher": 0.491
+    },
+    {
+      "threshold": 0.6,
+      "precision": 0.765,
+      "recall": 0.62,
+      "f1": 0.685,
+      "share_flagged_higher": 0.427
+    },
+    {
+      "threshold": 0.7,
+      "precision": 0.813,
+      "recall": 0.46,
+      "f1": 0.587,
+      "share_flagged_higher": 0.298
+    }
+  ],
+  "aggregation": {
+    "combined": {
+      "auc_label1_vs_label0": 0.896,
+      "mean_score_label0": 0.873,
+      "mean_score_label1": 0.967,
+      "share_flagged_higher_label0": 0.994,
+      "share_flagged_higher_label1": 1.0
+    },
+    "mean_per_answer": {
+      "auc_label1_vs_label0": 0.948,
+      "mean_score_label0": 0.393,
+      "mean_score_label1": 0.648,
+      "share_flagged_higher_label0": 0.168,
+      "share_flagged_higher_label1": 0.924
+    }
+  }
+}
