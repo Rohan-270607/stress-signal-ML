@@ -1,0 +1,12 @@
+# Python / ML (ml/.gitignore also applies inside ml/)
+.venv/
+__pycache__/
+.pytest_cache/
+# Frontend (when added)
+node_modules/
+dist/
+.env
+.env.*
+# NRC licence forbids redistribution
+ml/lexicons/negative_emotion.txt
+ml/data/raw/

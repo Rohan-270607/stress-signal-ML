@@ -1,0 +1,31 @@
+# Absolutist words ("black-and-white" thinking markers).
+# Core list: Al-Mosaiwi & Johnstone (2018), "In an Absolute State: Elevated Use of Absolutist Words Is a
+# Marker Specific to Anxiety, Depression, and Suicidal Ideation", Clinical Psychological Science 6(4).
+# VERIFICATION STATUS (checked against the open-access article, PMC6376956): the article body confirms always, totally,
+# entire, completely, nothing and definitely as absolutist, and says anything/need/needed were REMOVED from the dictionary.
+# The full 19-word list is only in Table S2 of the Supplemental Material, which has NOT been read yet, so the remaining
+# words below are still unverified (written from memory).
+absolutely
+all
+always
+complete
+completely
+constant
+constantly
+definitely
+entire
+ever
+every
+everyone
+everything
+full
+must
+never
+nothing
+totally
+whole
+# Additional words chosen by the project author (not from the paper):
+forever
+everybody
+nobody
+entirely

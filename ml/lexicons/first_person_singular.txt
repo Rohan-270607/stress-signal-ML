@@ -1,0 +1,14 @@
+# First-person singular pronouns. One entry per line; lines starting with # are comments.
+# Core list as specified: i, me, my, mine, myself.
+# Contractions are listed explicitly because the tokenizer keeps "i'm" as ONE token.
+i
+me
+my
+mine
+myself
+i'm
+i've
+i'll
+i'd
+im
+ive

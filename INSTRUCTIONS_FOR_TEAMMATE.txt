@@ -1,0 +1,139 @@
+STRESS-SIGNAL PROJECT: SETUP INSTRUCTIONS (for the frontend teammate)
+=====================================================================
+
+The ML part and the API are finished. You do NOT need to train anything. Your job is the
+frontend, which talks to the API. This file tells you what to do by hand, once, to get
+the API running on your laptop. Allow about 20 minutes.
+
+(Rohan: make sure the code is pushed to GitHub before sending this.)
+
+---------------------------------------------------------------------
+WHAT YOU NEED INSTALLED
+---------------------------------------------------------------------
+1. Git              https://git-scm.com/downloads
+2. Python 3.12      https://www.python.org/downloads/   (tick "Add Python to PATH" in the installer)
+3. Your usual frontend tools (Node.js etc.) when you start the frontend.
+
+Check in PowerShell:   git --version     python --version
+
+---------------------------------------------------------------------
+STEP 1: CLONE THE REPO
+---------------------------------------------------------------------
+Open PowerShell in the folder where you keep projects, then:
+
+    git clone https://github.com/Rohan-270607/stress-signal-ML.git
+    cd stress-signal-ML
+
+If GitHub asks you to sign in, or says you don't have access, ask Rohan to add you as a
+collaborator (repo -> Settings -> Collaborators), then accept the email invitation.
+
+---------------------------------------------------------------------
+STEP 2: CREATE THE PYTHON ENVIRONMENT
+---------------------------------------------------------------------
+    cd ml
+    python -m venv .venv
+    .venv\Scripts\python -m pip install -r requirements.txt
+
+This takes a few minutes. Always run Python commands from the "ml" folder.
+
+---------------------------------------------------------------------
+STEP 3: DOWNLOAD ONE WORD LIST BY HAND (it can't be in GitHub)
+---------------------------------------------------------------------
+The API uses the NRC Emotion Lexicon. Its licence allows free NON-COMMERCIAL research
+use only and forbids re-sharing it, so it is not in the repo. By downloading it you
+agree to those terms (fine for a student project; do not publish or share the file).
+
+ a) Download:  https://saifmohammad.com/WebDocs/Lexicons/NRC-Emotion-Lexicon.zip   (about 26 MB)
+ b) Unzip it so that THIS exact file exists (create the folders if needed):
+
+      stress-signal-ML\ml\data\raw\nrc\NRC-Emotion-Lexicon\NRC-Emotion-Lexicon-Wordlevel-v0.92.txt
+
+    (so the unzipped folder "NRC-Emotion-Lexicon" must sit inside ml\data\raw\nrc\)
+
+ c) Build the list the API needs (from the "ml" folder):
+
+      .venv\Scripts\python -m src.build_nrc_lexicon
+
+    You should see:  wrote 3722 words
+
+You do NOT need the Dreaddit dataset. That is only for retraining.
+
+---------------------------------------------------------------------
+STEP 4: START THE API
+---------------------------------------------------------------------
+From the "ml" folder:
+
+    .venv\Scripts\python -m uvicorn api.main:app --port 8000
+
+Leave this window open while you work on the frontend. Then check:
+
+ - Open  http://localhost:8000/health   -> should show {"status":"ok","model_loaded":true}
+ - Open  http://localhost:8000/docs     -> a page where you can try the API by clicking
+
+Quick test in a second PowerShell window:
+
+    curl.exe -X POST http://localhost:8000/analyze -H "Content-Type: application/json" -d "{\"text\": \"I never get anything right and I am so afraid nothing will change.\"}"
+
+You should get JSON back with stress_score, label, explanation, crisis_flag, etc.
+
+---------------------------------------------------------------------
+STEP 5: BUILD THE FRONTEND
+---------------------------------------------------------------------
+Read:  docs\api_contract.md   (exact request/response format, errors)
+       HANDOFF.md             (project overview and a suggested frontend scope)
+
+Call the API at http://localhost:8000. It already allows browsers on
+http://localhost:3000 and http://localhost:5173. If your dev server uses another port,
+stop the API and restart it like this (change the port):
+
+    $env:CORS_ORIGINS = "http://localhost:4200"
+    .venv\Scripts\python -m uvicorn api.main:app --port 8000
+
+Put your frontend code in a new folder called "frontend" at the top of the repo
+(next to "ml" and "docs"), and work on a branch:
+
+    git checkout -b frontend
+    ... make changes ...
+    git add .
+    git commit -m "describe what you did"
+    git push -u origin frontend
+
+Then open a Pull Request on GitHub and ask Rohan to review. Don't push straight to "main".
+
+---------------------------------------------------------------------
+RULES THE FRONTEND MUST FOLLOW (important)
+---------------------------------------------------------------------
+1. Always show the "disclaimer" text from the API on every result.
+2. If crisis_flag is true, show crisis_message exactly as received, prominently
+   (top of the page, not hidden, not editable). Do not rewrite it or generate your own.
+3. If the API returns a 503 error, still check crisis_flag in that response and show
+   crisis_message if it is there.
+4. Never use words like "diagnosis", "disorder", "treatment" or give advice in the UI.
+   The app shows a "signal", nothing more.
+5. Show the score as a soft indication, not a verdict. The contributions in the
+   explanation are in log-odds, so use them for bar sizes, not as percentages.
+6. Don't store or log the text users type.
+7. Don't change anything inside the "ml" folder or docs\api_contract.md without
+   talking to Rohan first.
+
+---------------------------------------------------------------------
+IF SOMETHING GOES WRONG
+---------------------------------------------------------------------
+- "An Application Control policy has blocked this file": Windows security is blocking a
+  Python library. Don't try to bypass it. Tell Rohan; it may need an allow-rule on the
+  machine.
+- API says "negative_emotion.txt missing": repeat Step 3 (the unzipped folder must be
+  in the exact place shown, then run the build command).
+- "No module named ...": you are not in the "ml" folder, or you didn't use
+  .venv\Scripts\python.
+- Port 8000 already in use: close the other window running the API, or use --port 8001
+  (and point the frontend at that port).
+- Browser says CORS error: see the CORS_ORIGINS note in Step 5.
+
+Optional check that everything works (from the "ml" folder):
+
+    .venv\Scripts\python -m pytest tests/test_api.py -q
+
+It should say "13 passed".
+
+Questions: ask Rohan. Good luck with your exams!

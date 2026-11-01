@@ -1,0 +1,13 @@
+# Negation words. Contractions ending in n't are ALSO caught by a rule in features.py
+# (any token ending in "n't"), so only non-contraction forms need listing.
+# Note: "never" and "nothing" appear in absolutist.txt as well; a word may count toward both features.
+not
+no
+never
+none
+nobody
+nothing
+neither
+nor
+cannot
+without

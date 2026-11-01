@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+.pytest_cache/
+data/raw/
+# NRC license forbids redistribution -> regenerate locally with src/build_nrc_lexicon.py
+lexicons/negative_emotion.txt

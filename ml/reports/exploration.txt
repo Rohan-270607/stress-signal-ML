@@ -1,0 +1,64 @@
+== COLUMNS ==
+train (2838, 116), test (715, 116)
+columns used / inspected: ['subreddit', 'post_id', 'sentence_range', 'text', 'id', 'label', 'confidence']
+(+ 109 pre-computed columns incl. LIWC/DAL. NOT used: LIWC is licensed and we build our own features.)
+
+label: 1 = annotators judged the text as expressing stress, 0 = not (majority vote of 5 crowd workers)
+confidence: fraction of annotators who agreed with that label (0.6 = 3 of 5 ... 1.0 = unanimous)
+
+== CLASS BALANCE ==
+train {0: np.int64(1350), 1: np.int64(1488)} -> stress share 0.524
+test {0: np.int64(346), 1: np.int64(369)} -> stress share 0.516
+
+label confidence (train):
+count    2838.000
+mean        0.809
+std         0.177
+min         0.429
+25%         0.600
+50%         0.800
+75%         1.000
+max         1.000
+share of rows with confidence < 0.7 (labeling-noise proxy): 0.342
+
+== TEXT LENGTH (words) ==
+train {'count': 2838.0, 'mean': 85.7, 'std': 32.3, 'min': 1.0, '25%': 65.0, '50%': 80.0, '75%': 101.0, 'max': 310.0}
+test {'count': 715.0, 'mean': 85.4, 'std': 31.2, 'min': 12.0, '25%': 65.0, '50%': 81.0, '75%': 101.0, 'max': 268.0}
+mean words by label: {0: 82.2, 1: 88.8}
+subreddits (train): {'ptsd': np.int64(584), 'relationships': np.int64(552), 'anxiety': np.int64(503), 'domesticviolence': np.int64(316), 'assistance': np.int64(289), 'survivorsofabuse': np.int64(245), 'homeless': np.int64(168), 'almosthomeless': np.int64(80), 'stress': np.int64(64), 'food_pantry': np.int64(37)}
+
+== DUPLICATES / LEAKAGE ==
+exact-text duplicates within train: 18
+normalised-text duplicates within train: 19
+normalised-text duplicates within test: 0
+normalised texts appearing in BOTH train and test: 3
+post_ids appearing in BOTH train and test: 0 (a post_id is one Reddit post; rows are text segments cut from it)
+unique post_ids: train 2343 test 586
+duplicate train texts with CONFLICTING labels: 3
+test segments (>50 chars) that are substrings of a train segment: 3
+
+== 5 RANDOM POSTS PER CLASS (train) ==
+
+--- STRESS (1) ---
+[relationships, conf=0.60] I of course understand her wanting me to be safe, but I have an IUD and use condoms 100% of the time, which she knows because she pries about my sex life. She knows I'm sexually active and I don't have a boyfriend and is really judgmental about me having casual sex. I had a pregnancy scare last week (I'm not pregnant) and all I wanted was some advice from my mom and she used it as a way to make me...
+
+[relationships, conf=1.00] Things my boyfriend does make me feel bad sometimes (for no reason actually), like when he doesn´t text me back for a few hours ( because he´s really busy with work but he texts me back whenever he can, I know it ) and I start having weird thoughts, like "Is he already tired or bored of me? Is this just another guy who made me fall in love with him and think that he loves me and cares about me, an...
+
+[anxiety, conf=0.67] Over the past couple of years I've been getting increasingly afraid of road trips. I've been terrified of dying in car accidents. I don't know entirely knowing where this fear is coming from. I was in a super minor fender bender as a teenager but that was it. In college, I lived in a city with insane traffic and regular accidents but I never experienced an accident myself.
+
+[assistance, conf=1.00] I'm not against working my ass off, I'm just getting down right now, no responses to applications can do that. I'm in a state that doesn't even have a real art school. I have no funds whatsoever, no family to help, I don't know where to go from here? Like how do you even apply for scholarships? How do I not starve to death if I can get to art school?
+
+[homeless, conf=0.80] Needless to say that is all a lie from him, He is here from DSS/Social Services just like I am. What I am worried about is my safety and security. This guy is obviously mentally ill and a drug addict and alchie, and now I am really concerned that he will do something to me because I stood up to him and his nonsense bullshit. How should I proceed....Call Social Services and turn him in? or call the...
+
+
+--- NOT STRESS (0) ---
+[homeless, conf=1.00] So many local counties and cities struggle with homelessness and put a lot of resources into fixing the problem. But I feel society as a whole needs to change in order to truly fix the problems at hand especially at the federal level. By at least having these conversations, we can start talking about how we as a nation might be able to change to help our neighbors. I hope this made a bit of sense....
+
+[anxiety, conf=1.00] Today I made the choice to go sign up for a gym membership. The working out part isn’t hard. It’s the fact that it’s a new place, and fairly wide open. I struggle with open spaces. But I walked in and signed up!!
+
+[assistance, conf=1.00] This past week when my phone bill payment wouldn't process I called my bank and an automated recording asked me to confirm my recent transactions. All of them were me attempting to pay my phone bill. I confirmed them. They all went through. I can't catch a break though that got fixed.
+
+[food_pantry, conf=0.60] It was only thanks to a few friends (and a few wonderful strangers here on Reddit) that I was able to pay our electric bill, but doing so drained all of the money we had on hand, and once we used the food we had from the food bank (we can only go once a month here) we are now totally out of most things. At the moment, we can't even do laundry because we don't have the quarters, but that's a smalle...
+
+[survivorsofabuse, conf=0.57] Both him and my mom left pornographic magazines laying on their bedroom floor ( we were in the process of moving and I saw them and was grossed out. Then they joked around about how I reacted and that they were my biological dads magazines and i should get mad at him for it. ( No older than 14) My stepdad told my mom (this is what she says) that I wanted a massage, i was sleeping on the couch and ...
+

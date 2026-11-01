@@ -1,0 +1,106 @@
+{
+  "all_positive_reference_f1": 0.6808,
+  "f1_ci95": {
+    "tfidf_logreg_baseline": [
+      0.715,
+      0.784
+    ],
+    "features_logreg": [
+      0.694,
+      0.765
+    ],
+    "features_xgboost": [
+      0.675,
+      0.747
+    ]
+  },
+  "f1_diff_baseline_minus_features_logreg_ci95": [
+    -0.017,
+    0.059
+  ],
+  "f1_diff_features_logreg_minus_xgboost_ci95": [
+    -0.0,
+    0.041
+  ],
+  "by_length": [
+    {
+      "words": "0-50",
+      "n": 58,
+      "f1_baseline": 0.706,
+      "f1_features_logreg": 0.692,
+      "share_predicted_higher_features_logreg": 0.431
+    },
+    {
+      "words": "50-80",
+      "n": 294,
+      "f1_baseline": 0.731,
+      "f1_features_logreg": 0.703,
+      "share_predicted_higher_features_logreg": 0.483
+    },
+    {
+      "words": "80-110",
+      "n": 236,
+      "f1_baseline": 0.763,
+      "f1_features_logreg": 0.729,
+      "share_predicted_higher_features_logreg": 0.602
+    },
+    {
+      "words": "110-+",
+      "n": 127,
+      "f1_baseline": 0.777,
+      "f1_features_logreg": 0.79,
+      "share_predicted_higher_features_logreg": 0.724
+    }
+  ],
+  "by_subreddit": [
+    {
+      "subreddit": "anxiety",
+      "n": 147,
+      "stress_share": 0.58,
+      "f1_features_logreg": 0.804,
+      "f1_baseline": 0.824
+    },
+    {
+      "subreddit": "assistance",
+      "n": 66,
+      "stress_share": 0.32,
+      "f1_features_logreg": 0.6,
+      "f1_baseline": 0.75
+    },
+    {
+      "subreddit": "domesticviolence",
+      "n": 72,
+      "stress_share": 0.65,
+      "f1_features_logreg": 0.787,
+      "f1_baseline": 0.804
+    },
+    {
+      "subreddit": "homeless",
+      "n": 52,
+      "stress_share": 0.35,
+      "f1_features_logreg": 0.524,
+      "f1_baseline": 0.632
+    },
+    {
+      "subreddit": "ptsd",
+      "n": 127,
+      "stress_share": 0.65,
+      "f1_features_logreg": 0.793,
+      "f1_baseline": 0.805
+    },
+    {
+      "subreddit": "relationships",
+      "n": 142,
+      "stress_share": 0.42,
+      "f1_features_logreg": 0.646,
+      "f1_baseline": 0.619
+    },
+    {
+      "subreddit": "survivorsofabuse",
+      "n": 70,
+      "stress_share": 0.44,
+      "f1_features_logreg": 0.676,
+      "f1_baseline": 0.657
+    }
+  ]
+}

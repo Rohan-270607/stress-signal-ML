@@ -1,0 +1,212 @@
+[
+  {
+    "test_row": 84,
+    "text": "Okay this is driving totally insane and I can't function normally because of it, I have had intrusive thoughts basically for as long as I can remember, though now they are pushing me closer and closer to insanity. I am only focusing on one disturbing thought now which I really only need serious and helpful answers for. To start off, I remember it being the start off 2015 and I was sleeping over at my best friends house who we will call \"J\". Now J and I would always stay up all night when having sleepovers, and this certain night I managed to pull through to 6:30 am 30 minutes after J had fallen asleep, though when I woke up I was in his sisters bed. Now since then up until now, I just assumed that I was literally half asleep and that I was just looking for anywhere comfortable to sleep that wasn't taken in my literally half asleep state of mind (both his sisters had stayed up all night in the living room I've believed up until this moment, also something to keep in mind is that both of us were to young to be consuming alcohol and I have no memory of myself entering their room.",
+    "annotator_label": 1,
+    "stress_score": 0.706,
+    "predicted": 1,
+    "explanation": [
+      {
+        "feature": "word_count",
+        "direction": "increases",
+        "contribution": 1.3881,
+        "plain_text": "Longer text than typical increased the signal."
+      },
+      {
+        "feature": "negative_emotion_rate",
+        "direction": "decreases",
+        "contribution": -0.7322,
+        "plain_text": "Lower use of negative-emotion words than typical decreased the signal."
+      },
+      {
+        "feature": "question_rate",
+        "direction": "decreases",
+        "contribution": -0.1199,
+        "plain_text": "Fewer question marks than typical decreased the signal."
+      },
+      {
+        "feature": "negation_rate",
+        "direction": "decreases",
+        "contribution": -0.0848,
+        "plain_text": "Lower use of negation words (not, no, n't) than typical decreased the signal."
+      }
+    ],
+    "features": {
+      "first_person_rate": 0.0971,
+      "absolutist_rate": 0.0194,
+      "negative_emotion_rate": 0.0146,
+      "negation_rate": 0.0146,
+      "question_rate": 0.0,
+      "exclamation_rate": 0.0,
+      "word_count": 206.0
+    }
+  },
+  {
+    "test_row": 395,
+    "text": "So im feeling a bit defeated; I finally went to my dr at the beginning of last month about my PPD and anxiety, also my workplace is very stressful and my marriage feels like it's crumbling because we are always arguing... my dr prescribed me Zoloft, I really wish now I had journaled how it made me feel, but thinking back, I had some nausea and then started to feel anxiety relief within a week, and overall better mood in a few weeks. Last week, I was working nights and forgot to take my Zoloft four days in a row... I went into a crisis/withdrawal, started taking it again and on day three I felt AWFUL. I went to a walkin because my dr was away that day. She prescribed me Paxil, to start at 10mg and then increase it to 20 after a week.",
+    "annotator_label": 1,
+    "stress_score": 0.832,
+    "predicted": 1,
+    "explanation": [
+      {
+        "feature": "word_count",
+        "direction": "increases",
+        "contribution": 0.6924,
+        "plain_text": "Longer text than typical increased the signal."
+      },
+      {
+        "feature": "first_person_rate",
+        "direction": "increases",
+        "contribution": 0.6616,
+        "plain_text": "Higher use of first-person singular pronouns (I, me, my) than typical increased the signal."
+      },
+      {
+        "feature": "negative_emotion_rate",
+        "direction": "increases",
+        "contribution": 0.3051,
+        "plain_text": "Higher use of negative-emotion words than typical increased the signal."
+      },
+      {
+        "feature": "negation_rate",
+        "direction": "decreases",
+        "contribution": -0.2751,
+        "plain_text": "Lower use of negation words (not, no, n't) than typical decreased the signal."
+      }
+    ],
+    "features": {
+      "first_person_rate": 0.131,
+      "absolutist_rate": 0.0069,
+      "negative_emotion_rate": 0.0621,
+      "negation_rate": 0.0,
+      "question_rate": 0.0,
+      "exclamation_rate": 0.0,
+      "word_count": 145.0
+    }
+  },
+  {
+    "test_row": 301,
+    "text": "**Remember Need to Know**. Only tell people about your plans if they absolutely need to know and can be trusted. Limit the number of people that know your plan; even if you trust them, they may be tricked into giving up your location **Be careful of your browsing history**. Most browsers keep a record of websites you visit.",
+    "annotator_label": 0,
+    "stress_score": 0.041,
+    "predicted": 0,
+    "explanation": [
+      {
+        "feature": "first_person_rate",
+        "direction": "decreases",
+        "contribution": -1.8049,
+        "plain_text": "Lower use of first-person singular pronouns (I, me, my) than typical decreased the signal."
+      },
+      {
+        "feature": "negative_emotion_rate",
+        "direction": "decreases",
+        "contribution": -1.0502,
+        "plain_text": "Lower use of negative-emotion words than typical decreased the signal."
+      },
+      {
+        "feature": "word_count",
+        "direction": "decreases",
+        "contribution": -0.3,
+        "plain_text": "Shorter text than typical decreased the signal."
+      },
+      {
+        "feature": "negation_rate",
+        "direction": "decreases",
+        "contribution": -0.2751,
+        "plain_text": "Lower use of negation words (not, no, n't) than typical decreased the signal."
+      }
+    ],
+    "features": {
+      "first_person_rate": 0.0,
+      "absolutist_rate": 0.0172,
+      "negative_emotion_rate": 0.0,
+      "negation_rate": 0.0,
+      "question_rate": 0.0,
+      "exclamation_rate": 0.0,
+      "word_count": 58.0
+    }
+  },
+  {
+    "test_row": 129,
+    "text": "My university holiday is over in a week. I've been submitting resumes online for 3 months and haven't gotten a single response. It's understandable since I'm applying for pharmacy assistance job which is highly competitive. I've been reading \"Rejection Proof\" by Jia Jiang where the author tries to get rejected once a day and vlogs the entire thing in order to face his fear of rejection. One day, he decides to find a job but only work for a day.",
+    "annotator_label": 0,
+    "stress_score": 0.328,
+    "predicted": 0,
+    "explanation": [
+      {
+        "feature": "first_person_rate",
+        "direction": "decreases",
+        "contribution": -0.8518,
+        "plain_text": "Lower use of first-person singular pronouns (I, me, my) than typical decreased the signal."
+      },
+      {
+        "feature": "question_rate",
+        "direction": "decreases",
+        "contribution": -0.1199,
+        "plain_text": "Fewer question marks than typical decreased the signal."
+      },
+      {
+        "feature": "negation_rate",
+        "direction": "decreases",
+        "contribution": -0.1097,
+        "plain_text": "Lower use of negation words (not, no, n't) than typical decreased the signal."
+      },
+      {
+        "feature": "word_count",
+        "direction": "decreases",
+        "contribution": -0.0605,
+        "plain_text": "Shorter text than typical decreased the signal."
+      }
+    ],
+    "features": {
+      "first_person_rate": 0.0506,
+      "absolutist_rate": 0.0127,
+      "negative_emotion_rate": 0.0506,
+      "negation_rate": 0.0127,
+      "question_rate": 0.0,
+      "exclamation_rate": 0.0,
+      "word_count": 79.0
+    }
+  },
+  {
+    "test_row": 659,
+    "text": "I've been dating this guy for a few months, and we've recently become official. He's wonderfully kind, intelligent, and we get along incredibly well. We have some deep conversations about our lives and the struggles we've endured, and I admire him. I haven't told him about my PTSD, mostly because I've been doing really well with managing it; this time last year, I was having panic attacks, flashbacks, hypervigilance, etc but I've been doing so great this year. My ex was the first person to know about my abuse, mostly because I was still suffering and couldn't hide it.",
+    "annotator_label": 0,
+    "stress_score": 0.566,
+    "predicted": 1,
+    "explanation": [
+      {
+        "feature": "negative_emotion_rate",
+        "direction": "decreases",
+        "contribution": -0.168,
+        "plain_text": "Lower use of negative-emotion words than typical decreased the signal."
+      },
+      {
+        "feature": "word_count",
+        "direction": "increases",
+        "contribution": 0.1677,
+        "plain_text": "Longer text than typical increased the signal."
+      },
+      {
+        "feature": "question_rate",
+        "direction": "decreases",
+        "contribution": -0.1199,
+        "plain_text": "Fewer question marks than typical decreased the signal."
+      },
+      {
+        "feature": "first_person_rate",
+        "direction": "increases",
+        "contribution": 0.0965,
+        "plain_text": "Higher use of first-person singular pronouns (I, me, my) than typical increased the signal."
+      }
+    ],
+    "features": {
+      "first_person_rate": 0.101,
+      "absolutist_rate": 0.0,
+      "negative_emotion_rate": 0.0404,
+      "negation_rate": 0.0202,
+      "question_rate": 0.0,
+      "exclamation_rate": 0.0,
+      "word_count": 99.0
+    }
+  }
+]
