@@ -241,6 +241,10 @@ Design rules:
 
 ## 10. Roadmap: student diary (planned, agreed with the user 2026-11-06)
 
+**Scope decision (user, 2026-11-06): this is a personal project. It is not being published or deployed, so there is no
+ethics approval, hosting or recruitment on the roadmap. The user will handle the privacy side themselves.** If that ever
+changes (other people use it, data is collected from others, it goes online), Phases 4 and 6 apply again.
+
 Idea: students write short entries daily for up to a week (typed, or a photo of handwriting read on the device) and run
 a "signal check" whenever they choose. Each entry is scored on its own and the week is averaged (D-15). Call it a
 "signal check", never a "test", and never say "your stress is rising": the model is weak (F1 ~0.73, Reddit-trained,
@@ -260,9 +264,11 @@ Decisions made as defaults, to be confirmed by the team:
 | 1 | Backend groundwork: chunking for long entries (measure first), confidence weighting (measure first), safety-at-save, contract/tests/decisions | Owner |
 | 2 | Typed diary: 7-day on-device storage, week view, signal check, optional lock, frontend tests | Owner |
 | 3 | Photo capture: on-device reading, correction step, honest limits | Owner |
-| 4 | Counsellor review, ethics approval, consent + questionnaire (e.g. PSS), recruit and collect data | People |
-| 5 | Validate against the questionnaire, measure the safety layer, improve the model on new data | Owner |
-| 6 | Only if students will really use it: login, hosting, privacy policy, human support path with campus counselling | Owner + institution |
+| 4 | SKIPPED for personal use (counsellor review, ethics approval, consent + questionnaire, recruitment). Needed again if others use it | People |
+| 5 | Offline model improvements that need no new people (learning curve, confidence weighting, chunking, extra features). Validation against real students stays impossible without data | Owner |
+| 6 | SKIPPED for personal use (login, hosting, privacy policy, human support path). Local only | Owner + institution |
 
-Gates: before any student sees it, Phase 1 safety-at-save, Phase 2 storage and the counsellor review are done; before
-collecting data, ethics approval is done; before saying "it works", the validation is done and reported even if weak.
+Gates: keep the safety layer, the disclaimer and the honest wording even for personal use (the app handles mental-health
+text, and the model is weak). Do not claim the score is validated; there is no student data behind it. If anyone else will
+use it, restore the counsellor review of prompts and crisis wording first; if data is collected from others, ethics
+approval and consent come first.
