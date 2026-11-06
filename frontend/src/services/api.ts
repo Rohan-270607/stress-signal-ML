@@ -8,13 +8,15 @@ export class ApiError extends Error {
   crisis_flag: boolean
   crisis_message: string | null
   disclaimer: string
+  safetyRan: boolean
 
   constructor(
     message: string,
     status: number,
     crisis_flag = false,
     crisis_message: string | null = null,
-    disclaimer = MANDATORY_DISCLAIMER
+    disclaimer = MANDATORY_DISCLAIMER,
+    safetyRan = false
   ) {
     super(message)
     this.name = 'ApiError'
@@ -22,25 +24,22 @@ export class ApiError extends Error {
     this.crisis_flag = crisis_flag
     this.crisis_message = crisis_message
     this.disclaimer = disclaimer
+    this.safetyRan = safetyRan
   }
 }
 
-/**
- * Health check endpoint: GET /health
- */
-export async function checkBackendHealth(): Promise<{ status: string; model_loaded: boolean }> {
-  try {
-    const res = await fetch(`${API_BASE}/health`, {
-      method: 'GET',
-      headers: { 'Accept': 'application/json' }
-    })
-    if (!res.ok) {
-      throw new Error(`Health check failed with HTTP ${res.status}`)
-    }
-    return await res.json()
-  } catch (err: any) {
-    throw new Error(err.message || 'Cannot connect to backend ML service at http://localhost:8000')
+/** What the UI needs to show about a failed request. */
+export interface AppError {
+  message: string
+  safetyCheckMissed: boolean
+}
+
+export function toAppError(err: unknown): AppError {
+  if (err instanceof ApiError) {
+    // A 422 means the input was rejected, not that the service failed; the editors block those inputs anyway.
+    return { message: err.message, safetyCheckMissed: err.status !== 422 && !err.safetyRan }
   }
+  return { message: 'Something went wrong while reading your entry.', safetyCheckMissed: true }
 }
 
 /**
@@ -58,14 +57,8 @@ export async function analyzeText(req: AnalysisRequest): Promise<AnalysisRespons
       },
       body: JSON.stringify(req)
     })
-  } catch (networkErr: any) {
-    throw new ApiError(
-      'Unable to connect to the analysis backend. Please make sure the service is running at http://localhost:8000.',
-      0,
-      false,
-      null,
-      MANDATORY_DISCLAIMER
-    )
+  } catch {
+    throw new ApiError("We couldn't reach the analysis service. Your text is still here, and nothing was saved.", 0)
   }
 
   // Handle 200 OK
@@ -85,15 +78,17 @@ export async function analyzeText(req: AnalysisRequest): Promise<AnalysisRespons
   const crisisFlag = Boolean(errorBody.crisis_flag)
   const crisisMessage = errorBody.crisis_message ?? null
   const disclaimer = errorBody.disclaimer ?? MANDATORY_DISCLAIMER
+  // The contract's 503 body carries crisis_flag because the safety layer still ran. No field means it may not have.
+  const safetyRan = typeof errorBody.crisis_flag === 'boolean'
 
   if (res.status === 422) {
     let msg = 'The input text must be between 1 and 5,000 characters and cannot be blank.'
     if (Array.isArray(errorBody.detail) && errorBody.detail.length > 0) {
-      msg = errorBody.detail.map((d: any) => d.msg).join('; ')
+      msg = errorBody.detail.map((d) => d.msg).join('; ')
     } else if (typeof errorBody.detail === 'string') {
       msg = errorBody.detail
     }
-    throw new ApiError(msg, 422, crisisFlag, crisisMessage, disclaimer)
+    throw new ApiError(msg, 422, crisisFlag, crisisMessage, disclaimer, safetyRan)
   }
 
   if (res.status === 503) {
@@ -101,7 +96,7 @@ export async function analyzeText(req: AnalysisRequest): Promise<AnalysisRespons
       ? errorBody.detail
       : 'Analysis service is temporarily unavailable.'
     // On 503, safety layer still ran, so crisis_flag & crisis_message must be preserved!
-    throw new ApiError(msg, 503, crisisFlag, crisisMessage, disclaimer)
+    throw new ApiError(msg, 503, crisisFlag, crisisMessage, disclaimer, safetyRan)
   }
 
   throw new ApiError(
@@ -109,6 +104,7 @@ export async function analyzeText(req: AnalysisRequest): Promise<AnalysisRespons
     res.status,
     crisisFlag,
     crisisMessage,
-    disclaimer
+    disclaimer,
+    safetyRan
   )
 }

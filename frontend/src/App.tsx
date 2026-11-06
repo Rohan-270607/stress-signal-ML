@@ -6,151 +6,132 @@ import { GuidedJournal } from './components/GuidedJournal'
 import { Header } from './components/Header'
 import { MultiResultView } from './components/MultiResultView'
 import { ResultView } from './components/ResultView'
-import { analyzeText, ApiError, checkBackendHealth } from './services/api'
+import { MANDATORY_DISCLAIMER } from './data/prompts'
+import { analyzeText, ApiError, toAppError } from './services/api'
+import type { AppError } from './services/api'
 import type { AnalysisResponse, MultiAnswerAnalysisResult } from './types'
 
 export function App() {
   const [activeTab, setActiveTab] = useState<'freeform' | 'guided'>('freeform')
-  const [backendConnected, setBackendConnected] = useState<boolean | null>(null)
   const [aboutOpen, setAboutOpen] = useState(false)
 
   // Crisis state: non-negotiable rule 2, persists across views if triggered
-  const [crisisFlag, setCrisisFlag] = useState(false)
   const [crisisMessage, setCrisisMessage] = useState<string | null>(null)
 
   // Analysis state
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<AppError | null>(null)
+
+  // What the student has written lives here, in memory only, so switching tabs or viewing a result never loses it
+  const [draft, setDraft] = useState('')
+  const [answers, setAnswers] = useState<Record<string, string>>({})
 
   // Results
   const [freeformResult, setFreeformResult] = useState<AnalysisResponse | null>(null)
-  const [lastSubmittedText, setLastSubmittedText] = useState<string>('')
   const [guidedResult, setGuidedResult] = useState<MultiAnswerAnalysisResult | null>(null)
 
-  // Initial backend health check
+  // The crisis panel sits at the top of the page, and the browser's scroll anchoring would otherwise
+  // keep the view on the content below it. A new result should also start from the top.
   useEffect(() => {
-    let mounted = true
-    checkBackendHealth()
-      .then(res => {
-        if (mounted && res.status === 'ok') {
-          setBackendConnected(true)
-        }
-      })
-      .catch(() => {
-        if (mounted) {
-          setBackendConnected(false)
-        }
-      })
-    return () => {
-      mounted = false
-    }
-  }, [])
+    window.scrollTo(0, 0)
+  }, [crisisMessage, freeformResult, guidedResult])
 
   const handleFreeformAnalyze = async (text: string) => {
     setIsLoading(true)
     setError(null)
-    setLastSubmittedText(text)
 
     try {
       const response = await analyzeText({ text })
       setFreeformResult(response)
 
       if (response.crisis_flag && response.crisis_message) {
-        setCrisisFlag(true)
         setCrisisMessage(response.crisis_message)
       }
-    } catch (err: any) {
-      if (err instanceof ApiError) {
-        if (err.crisis_flag && err.crisis_message) {
-          setCrisisFlag(true)
-          setCrisisMessage(err.crisis_message)
-        }
-        setError(err.message)
-      } else {
-        setError(err.message || 'An unexpected error occurred while analyzing the text.')
+    } catch (err) {
+      if (err instanceof ApiError && err.crisis_flag && err.crisis_message) {
+        setCrisisMessage(err.crisis_message)
       }
+      setError(toAppError(err))
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleReset = () => {
-    setFreeformResult(null)
-    setGuidedResult(null)
+  const handleSelectTab = (tab: 'freeform' | 'guided') => {
+    setActiveTab(tab)
     setError(null)
-    setLastSubmittedText('')
+  }
+
+  const handleResetFreeform = () => {
+    setFreeformResult(null)
+    setDraft('')
+    setError(null)
+  }
+
+  const handleResetGuided = () => {
+    setGuidedResult(null)
+    setAnswers({})
+    setError(null)
   }
 
   return (
     <div className="app-layout">
       {/* Non-negotiable Crisis Banner (top of viewport, verbatim message) */}
-      {crisisFlag && crisisMessage && (
-        <CrisisBanner message={crisisMessage} />
-      )}
+      {crisisMessage && <CrisisBanner message={crisisMessage} />}
 
       <Header
         activeTab={activeTab}
-        onSelectTab={(tab) => {
-          setActiveTab(tab)
-          handleReset()
-        }}
+        onSelectTab={handleSelectTab}
         onOpenAbout={() => setAboutOpen(true)}
-        backendConnected={backendConnected}
       />
 
       <main className="main-content">
         <div className="content-container">
           {activeTab === 'freeform' && (
-            <>
-              {!freeformResult ? (
-                <FreeformEditor
-                  onAnalyze={handleFreeformAnalyze}
-                  isLoading={isLoading}
-                  error={error}
-                />
-              ) : (
-                <ResultView
-                  result={freeformResult}
-                  entryText={lastSubmittedText}
-                  onReset={handleReset}
-                />
-              )}
-            </>
+            freeformResult ? (
+              <ResultView
+                result={freeformResult}
+                entryText={draft}
+                onEdit={() => setFreeformResult(null)}
+                onReset={handleResetFreeform}
+              />
+            ) : (
+              <FreeformEditor
+                text={draft}
+                onTextChange={setDraft}
+                onAnalyze={handleFreeformAnalyze}
+                isLoading={isLoading}
+                error={error}
+              />
+            )
           )}
 
           {activeTab === 'guided' && (
-            <>
-              {!guidedResult ? (
-                <GuidedJournal
-                  onComplete={(multiRes) => setGuidedResult(multiRes)}
-                  onError={(msg) => setError(msg)}
-                  onCrisisTrigger={(msg) => {
-                    setCrisisFlag(true)
-                    setCrisisMessage(msg)
-                  }}
-                  isLoading={isLoading}
-                  setIsLoading={setIsLoading}
-                />
-              ) : (
-                <MultiResultView
-                  result={guidedResult}
-                  onReset={handleReset}
-                />
-              )}
-            </>
+            guidedResult ? (
+              <MultiResultView
+                result={guidedResult}
+                onEdit={() => setGuidedResult(null)}
+                onReset={handleResetGuided}
+              />
+            ) : (
+              <GuidedJournal
+                answers={answers}
+                onAnswersChange={setAnswers}
+                onComplete={setGuidedResult}
+                onError={setError}
+                onCrisisTrigger={setCrisisMessage}
+                isLoading={isLoading}
+                setIsLoading={setIsLoading}
+                error={error}
+              />
+            )
           )}
         </div>
       </main>
 
       <footer className="app-footer">
-        <div className="footer-inner">
-          <p className="footer-disclaimer">
-            <strong>Mandatory Notice:</strong> This is not a diagnosis or a substitute for professional care.
-          </p>
-          <p className="footer-meta">
-            Specula Project · Interpretable Psycholinguistic Modeling · Non-commercial student wellness research
-          </p>
-        </div>
+        <p>{MANDATORY_DISCLAIMER}</p>
+        <p className="footer-meta">Specula is a non-commercial student research project.</p>
       </footer>
 
       <AboutModal

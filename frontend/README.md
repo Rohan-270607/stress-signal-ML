@@ -1,15 +1,17 @@
-# Specula: Student Stress-Signal Navigator (Frontend)
+# Specula: reflective journaling (Frontend)
 
 Web user interface for the student stress-signal project, implementing the exact contract in [`../docs/api_contract.md`](../docs/api_contract.md).
 
 ## What it does
 
 Takes a student's journal reflection and displays:
-1. A **soft stress-signal score** (0.000 to 1.000) and neutral indicator (`higher_signal` / `lower_signal`). Never a diagnosis or severity score.
-2. A transparent **psycholinguistic feature attribution** list with horizontal bars sized by SHAP log-odds contributions and plain-English reasons.
-3. An **independent crisis override banner** that renders verbatim helpline information whenever the rule-based safety layer flags crisis keywords.
-4. **Guided Journaling Inquiries** based on fixed, human-reviewed prompts from [`../docs/journaling_prompts.json`](../docs/journaling_prompts.json) (scored per-answer and averaged).
-5. The **mandatory non-clinical disclaimer** prominently visible on every result.
+1. A **soft stress-signal score** (0 to 1) on a ruler with the 0.5 line marked, plus a neutral label (`higher_signal` / `lower_signal`). Never a diagnosis or severity score.
+2. A list of the **word patterns that moved the score**, as centre-line bars sized by SHAP log-odds contributions, with the API's plain-English reasons.
+3. An **independent crisis panel** that renders the safety layer's message verbatim whenever it is flagged, with its numbers and link made tappable. It can't be dismissed, and a slim strip keeps the way back on screen after scrolling.
+4. **Guided prompts** read directly from [`../docs/journaling_prompts.json`](../docs/journaling_prompts.json) (scored per answer and averaged). They are still drafts pending human review, and the UI says so.
+5. The **mandatory non-clinical disclaimer** visible on every view.
+
+The dev samples under the editor, including the crisis phrase, only exist under `npm run dev`. They are not in production builds.
 
 ## Running Locally
 
@@ -33,6 +35,6 @@ Open **`http://localhost:5173`** in your browser.
 ## Strict Operating Rules Followed
 
 1. **No diagnosis or advice**: Uses only neutral "signal" terminology. The disclaimer is attached to every view.
-2. **Verbatim crisis handling**: The crisis message and helpline phone numbers are non-dismissible and verbatim from `ml/src/safety.py`.
+2. **Verbatim crisis handling**: The crisis message comes only from the API (`ml/src/safety.py`). No helpline numbers are hard-coded here, so they can't drift. If a request fails in a way that means the safety layer may not have run, the error says so and links to findahelpline.com.
 3. **Zero data persistence**: Reflections are processed in volatile memory only and never written to localStorage, cookies, or remote databases.
-4. **Input validation**: Max 5,000 characters, live counters, advisory for short entries (<30 words), and graceful 422 / 503 handling.
+4. **Input validation**: Max 5,000 characters, live counters, a hint for short entries (<30 words), and graceful 422 / 503 handling.

@@ -1,166 +1,147 @@
-import React, { useState } from 'react'
+import React from 'react'
+import type { AppError } from '../services/api'
 import { Disclaimer } from './Disclaimer'
+import { ErrorNotice } from './ErrorNotice'
 
 interface FreeformEditorProps {
+  text: string
+  onTextChange: (text: string) => void
   onAnalyze: (text: string) => Promise<void>
   isLoading: boolean
-  error: string | null
+  error: AppError | null
 }
 
-const SAMPLE_ENTRIES = [
+const MAX_CHARS = 5000
+const STEADY_WORDS = 30
+// Dreaddit texts top out around 310 words (ml/REPORT.md), so longer entries are outside the training range
+const LONG_WORDS = 300
+
+// Development only: a crisis phrase must never be one click away for a real student
+const SAMPLE_ENTRIES = import.meta.env.DEV ? [
   {
-    title: 'High Academic Burden',
+    title: 'High burden',
     text: "I am completely overwhelmed by these finals. I never seem to catch up, no matter how hard I try. I feel like I'm failing everyone and everything is falling apart right now."
   },
   {
-    title: 'Balanced Week Reflection',
+    title: 'Balanced week',
     text: "This week had some challenges with our group project deadlines, but we met yesterday and divided up the sections fairly. Took a walk in the park today and felt rested."
   },
   {
-    title: 'Safety Check (Crisis Keyword)',
+    title: 'Safety check',
     text: "I feel so hopeless and I can't go on anymore. I just want to end my life."
   }
+] : []
+
+const HOW_IT_WORKS = [
+  { title: 'It counts word patterns', text: 'Seven simple patterns, such as first-person words and negation.' },
+  { title: 'It shows its reasons', text: 'Every score comes with the patterns that moved it up or down.' },
+  { title: 'It stays a signal', text: 'It describes the writing, not you, and it can be wrong.' }
 ]
 
 export const FreeformEditor: React.FC<FreeformEditorProps> = ({
+  text,
+  onTextChange,
   onAnalyze,
   isLoading,
   error
 }) => {
-  const [text, setText] = useState('')
-
   const charCount = text.length
   const words = text.trim() ? text.trim().split(/\s+/).length : 0
-  const isTooLong = charCount > 5000
-  const isTooShort = charCount === 0
-  const isShortWordAdvisory = words > 0 && words < 30
+  const isTooLong = charCount > MAX_CHARS
+  const isBlank = text.trim().length === 0
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (isTooShort || isTooLong || isLoading) return
+    if (isBlank || isTooLong || isLoading) return
     onAnalyze(text)
   }
 
-  const handleClear = () => {
-    setText('')
-  }
-
-  const loadSample = (sampleText: string) => {
-    setText(sampleText)
-  }
+  let hint = `About ${STEADY_WORDS} words or more gives a steadier reading`
+  if (words >= STEADY_WORDS) hint = 'Enough for a steadier reading'
+  if (words > LONG_WORDS) hint = 'Much longer than the texts the model learned from'
 
   return (
-    <div className="editor-card animate-fade-in">
-      <div className="editor-header">
-        <div>
-          <h2 className="editor-title">Journal Reflection</h2>
-          <p className="editor-subtitle">
-            Write freely about your thoughts, academic workload, or feelings. Analysis runs locally in memory and is never logged.
-          </p>
-        </div>
-      </div>
+    <div className="animate-fade-in">
+      <div className="sheet">
+        <h2 className="page-title">What's on your mind?</h2>
+        <p className="page-subtitle">
+          Write about your week, your workload, or anything else. Your text is processed in memory and isn't stored or logged.
+        </p>
 
-      <form onSubmit={handleSubmit}>
-        <div className="textarea-container">
+        <form onSubmit={handleSubmit}>
           <textarea
             value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="What has been on your mind lately? How are your courses and daily routine feeling? (Take your time...)"
-            rows={8}
+            onChange={(e) => onTextChange(e.target.value)}
+            placeholder="Start anywhere..."
+            rows={9}
             className={`journal-textarea ${isTooLong ? 'textarea-error' : ''}`}
             disabled={isLoading}
-            maxLength={5200}
-            aria-label="Student journal reflection text"
+            maxLength={MAX_CHARS + 200}
+            aria-label="Journal entry"
           />
 
+          <div className="word-progress" aria-hidden="true">
+            <span style={{ width: `${Math.min(words / STEADY_WORDS, 1) * 100}%` }} />
+          </div>
+
           <div className="textarea-footer">
-            <div className="counter-group">
-              <span className={`char-counter ${charCount > 5000 ? 'counter-danger' : ''}`}>
-                {charCount.toLocaleString()} / 5,000 characters
-              </span>
-              <span className="word-counter">
-                {words} {words === 1 ? 'word' : 'words'}
-              </span>
+            <span>{hint}</span>
+            <span className={isTooLong ? 'counter-danger' : ''}>
+              {words} {words === 1 ? 'word' : 'words'} · {charCount.toLocaleString()} / {MAX_CHARS.toLocaleString()}
+            </span>
+          </div>
+
+          {isTooLong && (
+            <p className="field-error">This entry is over the {MAX_CHARS.toLocaleString()} character limit.</p>
+          )}
+
+          {error && <ErrorNotice error={error} />}
+
+          <div className="action-bar">
+            <Disclaimer compact />
+            <div className="action-buttons">
+              {text && (
+                <button type="button" className="btn btn-ghost" onClick={() => onTextChange('')} disabled={isLoading}>
+                  Clear
+                </button>
+              )}
+              <button type="submit" className="btn btn-primary" disabled={isBlank || isTooLong || isLoading}>
+                {isLoading ? (
+                  <>
+                    <span className="spinner" aria-hidden="true" />
+                    <span>Reading your entry...</span>
+                  </>
+                ) : 'Analyse entry'}
+              </button>
             </div>
-
-            {isShortWordAdvisory && (
-              <span className="advisory-pill">
-                ℹ️ Longer entries (&gt;30 words) give steadier signal results
-              </span>
-            )}
-
-            {isTooLong && (
-              <span className="error-pill">
-                ⚠️ Entry exceeds the 5,000 character limit
-              </span>
-            )}
           </div>
-        </div>
+        </form>
 
-        {error && (
-          <div className="error-alert" role="alert">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="8" x2="12" y2="12" />
-              <line x1="12" y1="16" x2="12.01" y2="16" />
-            </svg>
-            <span>{error}</span>
-          </div>
-        )}
-
-        <div className="editor-action-bar">
-          <div className="sample-buttons">
-            <span className="sample-label">Try sample:</span>
-            {SAMPLE_ENTRIES.map((sample, idx) => (
+        {SAMPLE_ENTRIES.length > 0 && (
+          <div className="sample-row">
+            <span className="sample-label">Dev samples</span>
+            {SAMPLE_ENTRIES.map(sample => (
               <button
-                key={idx}
+                key={sample.title}
                 type="button"
-                className="btn-pill"
-                onClick={() => loadSample(sample.text)}
+                className="btn-sample"
+                onClick={() => onTextChange(sample.text)}
                 disabled={isLoading}
               >
                 {sample.title}
               </button>
             ))}
           </div>
+        )}
+      </div>
 
-          <div className="submit-buttons">
-            {text && (
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={handleClear}
-                disabled={isLoading}
-              >
-                Clear
-              </button>
-            )}
-
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={isTooShort || isTooLong || isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <span className="spinner" aria-hidden="true" />
-                  <span>Extracting Features...</span>
-                </>
-              ) : (
-                <>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <polygon points="5 3 19 12 5 21 5 3" />
-                  </svg>
-                  <span>Analyse Stress Signal</span>
-                </>
-              )}
-            </button>
+      <div className="how-strip">
+        {HOW_IT_WORKS.map(item => (
+          <div key={item.title}>
+            <h3>{item.title}</h3>
+            <p>{item.text}</p>
           </div>
-        </div>
-      </form>
-
-      <div className="editor-bottom-note">
-        <Disclaimer compact />
+        ))}
       </div>
     </div>
   )

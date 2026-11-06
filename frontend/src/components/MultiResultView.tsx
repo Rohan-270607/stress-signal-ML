@@ -1,186 +1,93 @@
-import React, { useState } from 'react'
+import React from 'react'
+import { featureMeta } from '../data/features'
 import type { MultiAnswerAnalysisResult } from '../types'
 import { Disclaimer } from './Disclaimer'
+import { FeatureBars } from './FeatureBars'
+import { SignalScale } from './SignalScale'
 
 interface MultiResultViewProps {
   result: MultiAnswerAnalysisResult
+  onEdit: () => void
   onReset: () => void
 }
 
-export const MultiResultView: React.FC<MultiResultViewProps> = ({ result, onReset }) => {
-  const [expandedId, setExpandedId] = useState<string | null>(null)
+export const MultiResultView: React.FC<MultiResultViewProps> = ({ result, onEdit, onReset }) => {
   const isHigher = result.overall_label === 'higher_signal'
-
-  const toggleExpand = (id: string) => {
-    setExpandedId(prev => (prev === id ? null : id))
-  }
+  const answers = result.per_answer_results
+  const answerNoun = answers.length === 1 ? 'answer' : 'answers'
 
   return (
-    <div className="result-view-container animate-fade-in">
-      <div className="result-header">
-        <div>
-          <h2 className="result-title">Guided Reflection Synthesis</h2>
-          <p className="result-subtitle">
-            Averaged signal across {result.per_answer_results.length} answered inquiries (evaluated independently).
-          </p>
-        </div>
-        <button
-          onClick={onReset}
-          className="btn btn-secondary btn-sm"
-          type="button"
-        >
-          New Inquiries
-        </button>
-      </div>
-
-      {/* Aggregate Score Card */}
-      <div className={`signal-summary-card ${isHigher ? 'signal-higher' : 'signal-lower'}`}>
-        <div className="signal-gauge-section">
-          <div className="signal-meter-wrap">
-            <svg className="gauge-svg" viewBox="0 0 200 110">
-              <path
-                d="M 20 100 A 80 80 0 0 1 180 100"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="16"
-                strokeLinecap="round"
-                className="gauge-bg-arc"
-              />
-              <path
-                d="M 20 100 A 80 80 0 0 1 180 100"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="16"
-                strokeLinecap="round"
-                strokeDasharray="251.2"
-                strokeDashoffset={251.2 - (result.mean_score * 251.2)}
-                className="gauge-val-arc"
-              />
-            </svg>
-            <div className="gauge-center-text">
-              <span className="gauge-score-num">{result.mean_score.toFixed(3)}</span>
-              <span className="gauge-score-sub">Mean Score</span>
-            </div>
+    <div className="sheet animate-fade-in">
+      <section className={`summary ${isHigher ? 'summary-higher' : 'summary-lower'}`}>
+        <div className="summary-head">
+          <div className="summary-score">
+            <span className="summary-number">{result.mean_score.toFixed(2)}</span>
+            <span className="summary-caption">average of {answers.length} {answerNoun}</span>
           </div>
-
-          <div className="signal-status-meta">
-            <div className="badge-row">
-              <span className={`signal-badge ${isHigher ? 'badge-elevated' : 'badge-baseline'}`}>
-                {isHigher ? 'Higher Stress Signal (Mean ≥ 0.5)' : 'Lower Stress Signal (Mean < 0.5)'}
-              </span>
-              <span className="signal-type-tag">Per-Answer Calibration</span>
-            </div>
-            <p className="signal-desc-text">
+          <div>
+            <p className="summary-label">{isHigher ? 'Higher signal' : 'Lower signal'}</p>
+            <p className="summary-text">
               {isHigher
-                ? 'On average across your reflections, the psycholinguistic word choices exhibit higher stylistic affinity with elevated academic stress markers.'
-                : 'Across your reflections, your linguistic markers average within lower baseline patterns.'}
+                ? 'On average, the word patterns in your answers resemble texts that annotators labelled as expressing stress.'
+                : 'On average, the word patterns in your answers resemble texts that annotators did not label as expressing stress.'}
             </p>
           </div>
         </div>
-      </div>
 
-      {/* Aggregated Features */}
+        <SignalScale
+          score={result.mean_score}
+          isHigher={isHigher}
+          points={answers.map(item => item.response.stress_score)}
+        />
+        <p className="summary-note">The small ticks are your individual answers. Each was scored on its own.</p>
+      </section>
+
       {result.aggregated_explanations.length > 0 && (
-        <div className="explanations-card">
-          <div className="explanations-header">
-            <div>
-              <h3 className="section-title">Dominant Feature Attributions</h3>
-              <p className="section-subtitle">
-                Averaged SHAP feature contributions across all submitted prompt responses.
-              </p>
-            </div>
-          </div>
-
-          <div className="explanation-list">
-            {result.aggregated_explanations.map((item, idx) => {
-              const isIncrease = item.direction === 'increases'
-              return (
-                <div key={idx} className={`explanation-row ${isIncrease ? 'row-increase' : 'row-decrease'}`}>
-                  <div className="feature-info-col">
-                    <span className="feature-name">{item.feature.replace(/_/g, ' ')}</span>
-                    <span className={`direction-tag ${isIncrease ? 'tag-increase' : 'tag-decrease'}`}>
-                      {isIncrease ? '↑ Increases signal' : '↓ Decreases signal'}
-                    </span>
-                  </div>
-                  <div className="bar-and-reason-col">
-                    <div className="bar-wrapper">
-                      <div className="bar-track">
-                        <div
-                          className={`bar-fill ${isIncrease ? 'bar-increase' : 'bar-decrease'}`}
-                          style={{ width: `${Math.min(Math.abs(item.contribution) * 40, 100)}%` }}
-                        />
-                      </div>
-                      <span className="bar-value">
-                        {item.contribution > 0 ? `+${item.contribution.toFixed(3)}` : item.contribution.toFixed(3)}
-                      </span>
-                    </div>
-                    <p className="plain-reason-text">{item.plain_text}</p>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
+        <section className="section">
+          <h3 className="section-title">What moved the score</h3>
+          <p className="section-subtitle">
+            Averaged across your answers. This is approximate, because each answer only reports its strongest patterns.
+          </p>
+          <FeatureBars items={result.aggregated_explanations} />
+        </section>
       )}
 
-      {/* Breakdown per Inquiry Accordion */}
-      <div className="per-inquiry-section">
-        <h3 className="section-title">Individual Inquiry Breakdown</h3>
-        <p className="section-subtitle">Inspect the specific score and feature drivers for each reflection.</p>
-
-        <div className="accordion-list">
-          {result.per_answer_results.map((item, idx) => {
-            const isItemHigher = item.response.label === 'higher_signal'
-            const isExpanded = expandedId === item.prompt_id
-
-            return (
-              <div key={idx} className="accordion-item">
-                <button
-                  type="button"
-                  className="accordion-trigger"
-                  onClick={() => toggleExpand(item.prompt_id)}
-                >
-                  <div className="accordion-trigger-left">
-                    <span className="inquiry-badge">Inquiry {idx + 1}</span>
-                    <span className="accordion-prompt-text">{item.prompt_text}</span>
-                  </div>
-                  <div className="accordion-trigger-right">
-                    <span className={`mini-badge ${isItemHigher ? 'badge-elevated' : 'badge-baseline'}`}>
-                      {item.response.stress_score.toFixed(3)}
-                    </span>
-                    <span className="accordion-arrow">{isExpanded ? '▲' : '▼'}</span>
-                  </div>
-                </button>
-
-                {isExpanded && (
-                  <div className="accordion-content animate-fade-in">
-                    <div className="inquiry-quote-box">
-                      <p>"{item.answer_text}"</p>
-                    </div>
-
-                    <div className="inquiry-features">
-                      <h4 className="inquiry-features-title">Features for this inquiry:</h4>
-                      {item.response.explanation.length === 0 ? (
-                        <p className="sub-text">No significant feature movements.</p>
-                      ) : (
-                        <ul className="inquiry-feature-bullets">
-                          {item.response.explanation.map((exp, eIdx) => (
-                            <li key={eIdx}>
-                              <strong>{exp.feature.replace(/_/g, ' ')}</strong> ({exp.contribution > 0 ? `+${exp.contribution.toFixed(2)}` : exp.contribution.toFixed(2)}): {exp.plain_text}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  </div>
+      <section className="section">
+        <h3 className="section-title">Answer by answer</h3>
+        <div className="answer-list">
+          {answers.map((item) => (
+            <details key={item.prompt_id} className="answer">
+              <summary>
+                <span className="answer-prompt">{item.prompt_text}</span>
+                <span className={`answer-score ${item.response.label === 'higher_signal' ? 'value-raises' : 'value-lowers'}`}>
+                  {item.response.stress_score.toFixed(2)}
+                </span>
+              </summary>
+              <div className="answer-body">
+                <p className="answer-text">{item.answer_text}</p>
+                {item.response.explanation.length === 0 ? (
+                  <p className="section-subtitle">Nothing moved this answer's score much.</p>
+                ) : (
+                  <ul className="answer-reasons">
+                    {item.response.explanation.map((exp) => (
+                      <li key={exp.feature}>
+                        <strong>{featureMeta(exp.feature).label}:</strong> {exp.plain_text}
+                      </li>
+                    ))}
+                  </ul>
                 )}
               </div>
-            )
-          })}
+            </details>
+          ))}
         </div>
-      </div>
+      </section>
 
       <Disclaimer customText={result.disclaimer} />
+
+      <div className="result-actions">
+        <button type="button" className="btn btn-ghost" onClick={onEdit}>Edit my answers</button>
+        <button type="button" className="btn btn-secondary" onClick={onReset}>Start again</button>
+      </div>
     </div>
   )
 }

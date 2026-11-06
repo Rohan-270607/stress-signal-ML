@@ -1,82 +1,77 @@
-import React from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 interface CrisisBannerProps {
   message: string
 }
 
+// URLs (without trailing punctuation) and phone numbers such as 988 or 116 123
+const LINK_PATTERN = /(https?:\/\/[^\s]+?)(?=[.,;:)]?(?:\s|$))|(\b\d[\d -]{1,13}\d\b)/g
+
+/**
+ * Makes the numbers and links in the backend message tappable. Only wraps text in links, so the
+ * wording stays verbatim (Rule 2) and any helpline edit in ml/src/safety.py appears here unchanged.
+ */
+function linkify(message: string): React.ReactNode[] {
+  const nodes: React.ReactNode[] = []
+  let cursor = 0
+  for (const match of message.matchAll(LINK_PATTERN)) {
+    nodes.push(message.slice(cursor, match.index))
+    const [text, url] = match
+    nodes.push(
+      url
+        ? <a key={match.index} href={url} target="_blank" rel="noopener noreferrer">{text}</a>
+        : <a key={match.index} href={`tel:${text.replace(/\D/g, '')}`}>{text}</a>
+    )
+    cursor = match.index + text.length
+  }
+  nodes.push(message.slice(cursor))
+  return nodes
+}
+
 export const CrisisBanner: React.FC<CrisisBannerProps> = ({ message }) => {
+  const panelRef = useRef<HTMLElement>(null)
+  const [panelInView, setPanelInView] = useState(true)
+
+  useEffect(() => {
+    const panel = panelRef.current
+    if (!panel) return
+    panel.focus({ preventScroll: true })
+    const observer = new IntersectionObserver(
+      ([entry]) => setPanelInView(entry.intersectionRatio >= 0.5),
+      { threshold: [0, 0.5, 1] }
+    )
+    observer.observe(panel)
+    return () => observer.disconnect()
+  }, [])
+
   return (
-    <aside
-      aria-label="Crisis Helpline and Support Notification"
-      role="alert"
-      className="crisis-override-banner"
-    >
-      <div className="crisis-container">
-        <div className="crisis-header">
-          <div className="crisis-icon-pulse" aria-hidden="true">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="8" x2="12" y2="12" />
-              <line x1="12" y1="16" x2="12.01" y2="16" />
-            </svg>
-          </div>
-          <div>
-            <h2 className="crisis-title">Immediate Support & Confidential Care Available</h2>
-            <p className="crisis-notice-tag">Independent Safety Layer Triggered — Non-Dismissible</p>
-          </div>
+    <>
+      <aside
+        ref={panelRef}
+        tabIndex={-1}
+        aria-label="Support and helplines"
+        role="alert"
+        className="crisis-panel"
+      >
+        <div className="crisis-inner">
+          <h2 className="crisis-title">Support is available</h2>
+          {/* Verbatim message required by Rule 2 */}
+          <p className="crisis-message">{linkify(message)}</p>
         </div>
+      </aside>
 
-        {/* Verbatim message required by Rule 2 */}
-        <div className="crisis-verbatim-message">
-          <p>{message}</p>
+      {/* Never dismissible: when the panel scrolls away, this strip keeps the way back on screen */}
+      {!panelInView && (
+        <div className="crisis-strip">
+          <span>Support is available</span>
+          <button
+            type="button"
+            onClick={() => panelRef.current?.scrollIntoView({ block: 'start' })}
+          >
+            See helplines
+          </button>
         </div>
-
-        <div className="crisis-helpline-grid">
-          <a
-            href="tel:14416"
-            className="helpline-card"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <span className="helpline-region">India (Toll-Free 24/7)</span>
-            <span className="helpline-name">Tele-MANAS</span>
-            <span className="helpline-number">14416 / 1800-891-4416</span>
-          </a>
-
-          <a
-            href="tel:988"
-            className="helpline-card"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <span className="helpline-region">US & Canada (24/7)</span>
-            <span className="helpline-name">Suicide & Crisis Lifeline</span>
-            <span className="helpline-number">Call or Text 988</span>
-          </a>
-
-          <a
-            href="tel:116123"
-            className="helpline-card"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <span className="helpline-region">United Kingdom (24/7)</span>
-            <span className="helpline-name">Samaritans</span>
-            <span className="helpline-number">116 123</span>
-          </a>
-
-          <a
-            href="https://findahelpline.com"
-            className="helpline-card highlight"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <span className="helpline-region">International</span>
-            <span className="helpline-name">Find a Helpline Directory</span>
-            <span className="helpline-number">findahelpline.com ↗</span>
-          </a>
-        </div>
-      </div>
-    </aside>
+      )}
+    </>
   )
 }

@@ -1,4 +1,5 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
+import { MANDATORY_DISCLAIMER } from '../data/prompts'
 
 interface AboutModalProps {
   isOpen: boolean
@@ -6,71 +7,94 @@ interface AboutModalProps {
 }
 
 export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
+  const closeRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (!isOpen) return
+    closeRef.current?.focus()
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [isOpen, onClose])
+
   if (!isOpen) return null
 
   return (
-    <div className="modal-backdrop" onClick={onClose} role="dialog" aria-modal="true">
-      <div className="modal-card animate-scale-up" onClick={e => e.stopPropagation()}>
+    <div className="modal-backdrop" onClick={onClose}>
+      <div
+        className="modal-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="about-title"
+        onClick={e => e.stopPropagation()}
+      >
         <div className="modal-header">
-          <div>
-            <h2 className="modal-title">About the Stress-Signal Navigator</h2>
-            <p className="modal-subtitle">System design, psycholinguistic foundations, and limitations</p>
-          </div>
-          <button className="modal-close-btn" onClick={onClose} aria-label="Close dialog">
-            ✕
+          <h2 className="modal-title" id="about-title">About Specula</h2>
+          <button ref={closeRef} type="button" className="modal-close-btn" onClick={onClose} aria-label="Close">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+              <path d="M5 5l14 14M19 5L5 19" />
+            </svg>
           </button>
         </div>
 
         <div className="modal-body">
           <section className="modal-section">
-            <h3>1. What This System Is & Isn't</h3>
+            <h3>What it is</h3>
             <p>
-              This is a <strong>transparent psycholinguistic signal extractor</strong>. It uses seven interpretable
-              linguistic features and an explainable logistic regression model to evaluate similarities between journal
-              writing and research texts produced during periods of heightened stress.
+              Specula looks at the word patterns in what you write and shows how closely they resemble Reddit posts
+              that human annotators labelled as expressing stress. It shows a score and the reasons behind it.
             </p>
-            <div className="callout-box">
-              <strong>Non-Negotiable Ethics:</strong> This system <em>never diagnoses</em> mental health disorders,
-              never assigns medical labels, and never generates AI advice or counseling.
-            </div>
-          </section>
-
-          <section className="modal-section">
-            <h3>2. The Seven Interpretable Linguistic Features</h3>
-            <ul>
-              <li><strong>First-person singular pronouns</strong> (<em>I, me, my, myself</em>) — self-referential focus.</li>
-              <li><strong>Absolutist phrasing</strong> (<em>always, never, completely, nothing</em>) — binary/dichotomous thinking markers (Al-Mosaiwi & Johnstone 2018).</li>
-              <li><strong>Negative emotion lexicon</strong> — NRC Emotion Lexicon words flagged for negative sentiment, anger, fear, or sadness.</li>
-              <li><strong>Negation terms</strong> (<em>no, not, never, n't</em>).</li>
-              <li><strong>Punctuation markers</strong> — question marks and exclamation marks.</li>
-              <li><strong>Word count</strong> — text length normalization.</li>
-            </ul>
-          </section>
-
-          <section className="modal-section">
-            <h3>3. Independent Rule-Based Crisis Safety Layer</h3>
-            <p>
-              Crisis detection does <strong>not</strong> rely on the statistical ML model. An independent, rule-based
-              safety filter scans for immediate distress or crisis patterns. When triggered, it displays a verbatim,
-              human-written helpline notice that cannot be dismissed or overridden.
+            <p className="callout-box">
+              It never diagnoses, never assigns a medical label, and never generates advice or counselling.
             </p>
           </section>
 
           <section className="modal-section">
-            <h3>4. Known Limitations</h3>
+            <h3>The seven word patterns</h3>
             <ul>
-              <li><strong>Weak model by design:</strong> F1 score is ~0.73 on held-out test data. Scores are intended solely as soft indications, not definitive statements.</li>
-              <li><strong>Short entry sensitivity:</strong> Entries under 30 words exhibit higher statistical variance. Longer entries yield more reliable signals.</li>
-              <li><strong>Zero data persistence:</strong> Your reflection text stays in your browser memory while you view it and is never stored on a server or recorded to a database.</li>
+              <li><strong>First-person words</strong>, such as <em>I, me, my</em></li>
+              <li><strong>Absolutist words</strong>, such as <em>always, never, completely</em></li>
+              <li><strong>Negative-emotion words</strong>, from the NRC Emotion Lexicon</li>
+              <li><strong>Negation</strong>, such as <em>no, not, n't</em></li>
+              <li><strong>Question marks</strong> and <strong>exclamation marks</strong></li>
+              <li><strong>Entry length</strong></li>
             </ul>
+          </section>
+
+          <section className="modal-section">
+            <h3>The safety layer</h3>
+            <p>
+              A separate rule-based check looks for phrases about suicide and self-harm, and it doesn't use the score.
+              When it matches, a fixed, human-written helpline message appears and can't be dismissed. It only knows
+              the phrases on its list, so it will miss things and it will sometimes raise false alarms. A flag doesn't
+              mean someone is in danger, and no flag doesn't mean they're safe.
+            </p>
+          </section>
+
+          <section className="modal-section">
+            <h3>Limits</h3>
+            <ul>
+              <li>The model was trained on Reddit posts. How well it works on student journals hasn't been measured.</li>
+              <li>On held-out Reddit test data it scored an F1 of about 0.73 and got 29% of texts wrong.</li>
+              <li>Longer text pushes the score up, and entries under 30 words give less stable scores.</li>
+              <li>It hasn't been checked against clinical measures, and it must not be used to screen or rank anyone.</li>
+            </ul>
+          </section>
+
+          <section className="modal-section">
+            <h3>Your text</h3>
+            <p>
+              Your text is processed in memory and isn't stored or logged by the service. Here in the browser it's kept
+              only while this page is open.
+            </p>
           </section>
         </div>
 
         <div className="modal-footer">
-          <p className="modal-disclaimer">"This is not a diagnosis or a substitute for professional care."</p>
-          <button className="btn btn-primary" onClick={onClose}>
-            Got It
-          </button>
+          <p className="modal-disclaimer">{MANDATORY_DISCLAIMER}</p>
+          <button type="button" className="btn btn-primary" onClick={onClose}>Close</button>
         </div>
       </div>
     </div>
