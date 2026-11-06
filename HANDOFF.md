@@ -57,7 +57,7 @@ Division of work (decided by the user): **project owner (the user) = ML track + 
 | 9 | Verify absolutist word list against the paper appendix | Owner | Done 2026-11-01 (see section 7, item 1) |
 | 10 | Verify and localise helpline numbers in `ml/src/safety.py` | Owner | Numbers **verified 2026-11-01**; which countries/order to show is still open |
 | 11 | Decide decision threshold (0.5 now) with the team | Owner + teammate | Provisional: keep 0.5 (evidence in DECISIONS D-08); team to confirm |
-| 12 | Push to GitHub, add the teammate as collaborator (section 3) | Owner | Pushed 2026-11-01. Frontend polish merged to `main` 2026-11-06 (Phase 0). **Still to do by hand: add the teammate as a collaborator** (needs her exact GitHub username) |
+| 12 | Push to GitHub, add the teammate as collaborator (section 3) | Owner | Pushed 2026-11-01. Frontend polish merged to `main` 2026-11-06 (Phase 0). Teammate is a collaborator (reported by the user 2026-11-06; not checked by the agent, no GitHub access) |
 | 13 | Frontend (section 8) | Teammate | Done 2026-11-01 (React + TypeScript + Vite). Polished 2026-11-06: light Bone and burgundy theme, score ruler and centre-line bars, sticky crisis strip, no hard-coded helplines, every guided answer sent to the safety layer, dev-only samples, error states (see `frontend/README.md`) |
 | 14 | Wire frontend to API and test end to end | Teammate + Owner | Done 2026-11-01 (wired to FastAPI `http://localhost:8000/analyze`, verified with sample prompts, crisis trigger, and guided inquiries) |
 | 15 | Validate on consented student journal data before any real use | Owner + teammate | Not started |
@@ -189,9 +189,7 @@ Errors: `422` (bad input, FastAPI default body) and `503` (model failed; body st
    per-answer-mean scoring (D-15) and the draft prompts (D-16). Moving the threshold is a product decision about which
    error costs more.
 4. Validate on consented student journal data before real use (trained on Reddit only).
-5. Add the teammate as a GitHub collaborator (Settings > Collaborators). Needs her exact GitHub username; the README
-   names "Tharasri" but do not assume that is the username.
-6. Counsellor review of the draft prompts (`docs/journaling_prompts.json`) and of the frontend's own crisis-panel
+5. Counsellor review of the draft prompts (`docs/journaling_prompts.json`) and of the frontend's own crisis-panel
    wording ("Support is available" and the "safety check couldn't run" line in `frontend/src`). Crisis text is meant to be
    human-written and reviewed.
 
@@ -260,7 +258,7 @@ Decisions made as defaults, to be confirmed by the team:
 
 | Phase | Work | Who |
 |---|---|---|
-| 0 | Push and merge `frontend-polish`, update this file, add the collaborator | Owner (collaborator step needs her username) |
+| 0 | DONE 2026-11-06: push and merge `frontend-polish`, update this file; teammate is a collaborator | Owner |
 | 1 | Backend groundwork: chunking for long entries (measure first), confidence weighting (measure first), safety-at-save, contract/tests/decisions | Owner |
 | 2 | Typed diary: 7-day on-device storage, week view, signal check, optional lock, frontend tests | Owner |
 | 3 | Photo capture: on-device reading, correction step, honest limits | Owner |
