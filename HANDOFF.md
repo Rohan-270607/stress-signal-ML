@@ -27,13 +27,14 @@ A system that takes a student's journal text and returns:
 It **never diagnoses and never gives advice**. Every response carries the disclaimer
 "This is not a diagnosis or a substitute for professional care."
 
-Repo root: `T:\project_specula` (Windows, PowerShell). Not yet a git repo.
+Repo root: `T:\project_specula` (Windows, PowerShell). Git repo, remote `origin` = https://github.com/Rohan-270607/stress-signal-ML (section 3).
 
 ```
 docs/api_contract.md     <- the API contract (source of truth for the frontend)
 ml/                      <- ML track, DONE and tested
   src/ api/ tests/ lexicons/ models/stress_model.joblib reports/
   README.md  REPORT.md  DECISIONS.md
+frontend/                <- React + TypeScript + Vite web UI (README inside)
 HANDOFF.md               <- this file
 ```
 
@@ -56,22 +57,25 @@ Division of work (decided by the user): **project owner (the user) = ML track + 
 | 9 | Verify absolutist word list against the paper appendix | Owner | Done 2026-11-01 (see section 7, item 1) |
 | 10 | Verify and localise helpline numbers in `ml/src/safety.py` | Owner | Numbers **verified 2026-11-01**; which countries/order to show is still open |
 | 11 | Decide decision threshold (0.5 now) with the team | Owner + teammate | Provisional: keep 0.5 (evidence in DECISIONS D-08); team to confirm |
-| 12 | Push to GitHub, add the teammate as collaborator (section 3) | Owner | Pushed 2026-11-01 (commit 3a4de7a). **Still to do by hand: add the teammate as a collaborator** |
-| 13 | Frontend (section 8) | Teammate | Done 2026-11-01 (branch `frontend`, React + TypeScript + Vite, freeform + guided inquiries, verbatim crisis override banner, soft gauge, SHAP bars, non-clinical disclaimer) |
+| 12 | Push to GitHub, add the teammate as collaborator (section 3) | Owner | Pushed 2026-11-01. Frontend polish merged to `main` 2026-11-06 (Phase 0). **Still to do by hand: add the teammate as a collaborator** (needs her exact GitHub username) |
+| 13 | Frontend (section 8) | Teammate | Done 2026-11-01 (React + TypeScript + Vite). Polished 2026-11-06: light Bone and burgundy theme, score ruler and centre-line bars, sticky crisis strip, no hard-coded helplines, every guided answer sent to the safety layer, dev-only samples, error states (see `frontend/README.md`) |
 | 14 | Wire frontend to API and test end to end | Teammate + Owner | Done 2026-11-01 (wired to FastAPI `http://localhost:8000/analyze`, verified with sample prompts, crisis trigger, and guided inquiries) |
 | 15 | Validate on consented student journal data before any real use | Owner + teammate | Not started |
-| 16 | Write the fixed list of guided journaling prompts (see section 8a) | Owner + teammate | Done (wired from `docs/journaling_prompts.json`, 6 prompts, tested in UI) |
-| 17 | Decide how answers are scored (section 8a) | Owner + teammate | Done: per-answer mean implemented in frontend (DECISIONS D-15) |
+| 16 | Write the fixed list of guided journaling prompts (human-written, reviewed; see section 8a) | Owner + teammate | **Drafted and wired, NOT reviewed.** `docs/journaling_prompts.json` is a DRAFT; a person (ideally a counsellor) must review it. The UI says "Draft prompts, pending review" until then |
+| 17 | Decide how answers are scored (section 8a) | Owner + teammate | Provisional: per-answer mean implemented in the frontend (DECISIONS D-15); team to confirm |
+| 18 | Roadmap: student diary, typed + photo capture (section 10) | Owner | Planned, Phase 0 done; Phase 1 next |
 
-Last verified: 69 tests pass (feature extractor 13, safety 40, API 13). Everything in rows 0-8 was actually run; the
-numbers in `ml/REPORT.md` were produced by the code, not typed by hand.
+Last verified: 69 backend tests pass (feature extractor 13, safety 40, API 13, prompts 3); frontend `npm run build` and
+`npm run lint` clean. The frontend has no automated tests yet (Phase 2, step 12). Everything in rows 0-8 was actually run;
+the numbers in `ml/REPORT.md` were produced by the code, not typed by hand.
 
 ## 3. GitHub repository and collaboration
 
 **Repo URL:** https://github.com/Rohan-270607/stress-signal-ML  (owner: Rohan-270607)
 Status: the ML track was pushed to `main` on 2026-11-01 (commit `3a4de7a`, on top of the GitHub-generated initial
-commit that contains only `README.md`). The commands below are the record of how it was done; do not re-run `git init`.
-Changes made after that commit (such as this section) are local until committed and pushed.
+commit that contains only `README.md`); the frontend followed in `6329b57`, and the frontend polish branch
+`frontend-polish` was merged on 2026-11-06. The commands below are the record of how the first push was done; do not
+re-run `git init`. Changes are local until committed and pushed.
 
 First-time setup, from `T:\project_specula` (owner does this once):
 
@@ -185,7 +189,11 @@ Errors: `422` (bad input, FastAPI default body) and `503` (model failed; body st
    per-answer-mean scoring (D-15) and the draft prompts (D-16). Moving the threshold is a product decision about which
    error costs more.
 4. Validate on consented student journal data before real use (trained on Reddit only).
-5. `git init` the repo before sharing.
+5. Add the teammate as a GitHub collaborator (Settings > Collaborators). Needs her exact GitHub username; the README
+   names "Tharasri" but do not assume that is the username.
+6. Counsellor review of the draft prompts (`docs/journaling_prompts.json`) and of the frontend's own crisis-panel
+   wording ("Support is available" and the "safety check couldn't run" line in `frontend/src`). Crisis text is meant to be
+   human-written and reviewed.
 
 ## 8. Next task (when the user says go): the frontend
 
@@ -217,16 +225,44 @@ Design rules:
   Encourage at least ~30 words per answer. The fixed prompts are in `docs/journaling_prompts.json` (DRAFT, needs human review).
 * The current contract already supports this with no API change.
 * Not in scope here: chat replies, storing entries over time, questionnaires. Those each need a separate decision
-  (storage means consent and retention rules).
+  (storage means consent and retention rules). Storing entries over time is now planned as the diary (section 10).
 
 ## 9. Where to look
 
 | Question | File |
 |---|---|
-| Why was X chosen? | `ml/DECISIONS.md` (D-01 to D-14) |
+| Why was X chosen? | `ml/DECISIONS.md` (D-01 to D-16) |
 | How good is it, limits, ethics | `ml/REPORT.md` |
 | How to run / edit lexicons / safety limits | `ml/README.md` |
 | API shapes | `docs/api_contract.md` |
 | Feature extractor / lexicons | `ml/src/features.py`, `ml/lexicons/*.txt` |
 | Explanation wording | `ml/src/explain.py` (`DESCRIBE`, `plain_text`) |
 | Safety rules | `ml/src/safety.py`, `ml/tests/test_safety.py` |
+
+## 10. Roadmap: student diary (planned, agreed with the user 2026-11-06)
+
+Idea: students write short entries daily for up to a week (typed, or a photo of handwriting read on the device) and run
+a "signal check" whenever they choose. Each entry is scored on its own and the week is averaged (D-15). Call it a
+"signal check", never a "test", and never say "your stress is rising": the model is weak (F1 ~0.73, Reddit-trained,
+unvalidated), so day-to-day changes are mostly noise.
+
+Decisions made as defaults, to be confirmed by the team:
+* Entries are stored **on the student's own device only** (browser storage), max 7 days, with a delete-everything button.
+  This changes the "nothing is stored" wording in the UI, README and About page; update them in the same change.
+* The **safety check runs every time an entry is saved**, not only when a signal check is run.
+* Photos are read **on the device**; the student corrects the text; only the text is kept and the image is discarded.
+  Cloud OCR would send diary photos to a third party and needs explicit consent first. Handwriting reads poorly with
+  free on-device OCR; scores from OCR text are less reliable and the UI must say so.
+
+| Phase | Work | Who |
+|---|---|---|
+| 0 | Push and merge `frontend-polish`, update this file, add the collaborator | Owner (collaborator step needs her username) |
+| 1 | Backend groundwork: chunking for long entries (measure first), confidence weighting (measure first), safety-at-save, contract/tests/decisions | Owner |
+| 2 | Typed diary: 7-day on-device storage, week view, signal check, optional lock, frontend tests | Owner |
+| 3 | Photo capture: on-device reading, correction step, honest limits | Owner |
+| 4 | Counsellor review, ethics approval, consent + questionnaire (e.g. PSS), recruit and collect data | People |
+| 5 | Validate against the questionnaire, measure the safety layer, improve the model on new data | Owner |
+| 6 | Only if students will really use it: login, hosting, privacy policy, human support path with campus counselling | Owner + institution |
+
+Gates: before any student sees it, Phase 1 safety-at-save, Phase 2 storage and the counsellor review are done; before
+collecting data, ethics approval is done; before saying "it works", the validation is done and reported even if weak.
