@@ -21,7 +21,8 @@ def test_analyze_contract_shape(client):
     r = client.post("/analyze", json={"text": "I always mess everything up and I never feel okay. Why me?"})
     assert r.status_code == 200
     b = r.json()
-    assert set(b) == {"stress_score", "label", "explanation", "crisis_flag", "crisis_message", "disclaimer"}
+    assert set(b) == {"stress_score", "label", "explanation", "pieces", "crisis_flag", "crisis_message", "disclaimer"}
+    assert b["pieces"] == 1
     assert 0 <= b["stress_score"] <= 1
     assert b["label"] in {"higher_signal", "lower_signal"}
     assert (b["label"] == "higher_signal") == (b["stress_score"] >= 0.5)
@@ -63,3 +64,33 @@ def test_model_failure_still_returns_crisis_info(client, monkeypatch):
     assert r.status_code == 503
     assert r.json()["crisis_flag"] is True and r.json()["crisis_message"] == CRISIS_MESSAGE
     assert "boom" not in r.text   # internals never leak
+
+
+CALM = "This week I went to my lectures and finished the reading before the weekend. "
+
+
+def test_long_text_is_scored_in_pieces(client):
+    b = client.post("/analyze", json={"text": CALM * 25}).json()   # ~350 words
+    assert b["pieces"] > 1 and 0 <= b["stress_score"] <= 1
+    # length is left out of the reasons for a chunked text: every piece is ~100 words by construction
+    assert all(e["feature"] != "word_count" for e in b["explanation"])
+
+
+def test_long_calm_text_is_not_pushed_to_higher_by_length(client):
+    whole = state["explainer"].analyze(CALM * 25, chunk=False)["stress_score"]
+    b = client.post("/analyze", json={"text": CALM * 25}).json()
+    assert b["stress_score"] < whole       # the length effect (D-15 / D-17) is what chunking removes
+    assert b["label"] == "lower_signal"
+
+
+def test_text_up_to_150_words_is_unchanged_by_chunking(client):
+    text = CALM * 10                        # 140 words
+    a, b = state["explainer"].analyze(text), state["explainer"].analyze(text, chunk=False)
+    assert a["pieces"] == 1
+    assert a["stress_score"] == b["stress_score"] and a["explanation"] == b["explanation"]
+
+
+def test_crisis_phrase_deep_in_a_long_text_is_still_flagged(client):
+    text = CALM * 12 + "Some days I want to end my life. " + CALM * 12
+    b = client.post("/analyze", json={"text": text}).json()
+    assert b["pieces"] > 1 and b["crisis_flag"] is True and b["crisis_message"] == CRISIS_MESSAGE

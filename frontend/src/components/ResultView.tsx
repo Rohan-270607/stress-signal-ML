@@ -35,6 +35,12 @@ export const ResultView: React.FC<ResultViewProps> = ({ result, entryText, onEdi
 
         <SignalScale score={result.stress_score} isHigher={isHigher} />
 
+        {(result.pieces ?? 1) > 1 && (
+          <p className="summary-note">
+            This entry is long, so it was scored in {result.pieces} parts and the scores were averaged.
+          </p>
+        )}
+
         {wordCount < 30 && (
           <p className="summary-note">
             This entry is short ({wordCount} {wordCount === 1 ? 'word' : 'words'}), so the score is less stable than usual.

@@ -17,6 +17,7 @@ import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 import shap  # noqa: E402
 
+from src.chunking import chunk_text  # noqa: E402
 from src.config import LABEL_COL, MODELS, REPORTS, SEED, TEXT_COL  # noqa: E402
 from src.data import load_clean  # noqa: E402
 from src.features import FEATURE_NAMES, FeatureExtractor  # noqa: E402
@@ -68,12 +69,25 @@ class Explainer:
         v = self.sh.shap_values(self._prep(X))
         return v[1] if isinstance(v, list) else v
 
-    def analyze(self, text: str) -> dict:
-        X = self.fx.transform([text])
-        score = float(self.model.predict_proba(X)[0, 1])
-        sv = self.shap_values(X)[0]
+    def analyze(self, text: str, chunk: bool = True) -> dict:
+        """Score one text. Texts over ~150 words are scored in pieces and averaged (DECISIONS D-17).
+
+        With one piece (every text up to 150 words, i.e. 96% of training texts) this is exactly the plain
+        whole-text score, with exact SHAP. With several pieces the score is the mean of the piece scores and the
+        reasons are the mean SHAP contribution per feature: an approximation, because a mean of probabilities is not
+        additive in log-odds. `word_count` is left out of the reasons then: every piece is ~100 words by construction,
+        so its contribution would describe the piece size and not the entry.
+        """
+        pieces = chunk_text(text) if chunk else [text]
+        X = self.fx.transform(pieces)
+        score = float(self.model.predict_proba(X)[:, 1].mean())
+        sv_all = self.shap_values(X)
+        sv = sv_all.mean(axis=0)
+        mean_features = X.mean(axis=0)
         items = []
-        for name, val, s in zip(FEATURE_NAMES, X.iloc[0], sv):
+        for name, val, s in zip(FEATURE_NAMES, mean_features, sv):
+            if len(pieces) > 1 and name == "word_count":
+                continue
             if abs(s) >= MIN_ABS:
                 items.append({
                     "feature": name,
@@ -82,8 +96,9 @@ class Explainer:
                     "plain_text": plain_text(name, float(val), self.means[name], float(s)),
                 })
         items.sort(key=lambda d: -abs(d["contribution"]))
-        return {"stress_score": score, "explanation": items[:TOP_K], "features": X.iloc[0].to_dict(),
-                "base_value": float(np.ravel(self.sh.expected_value)[0]), "all_shap": sv.tolist()}
+        return {"stress_score": score, "explanation": items[:TOP_K], "features": mean_features.to_dict(),
+                "base_value": float(np.ravel(self.sh.expected_value)[0]), "all_shap": sv.tolist(),
+                "pieces": len(pieces)}
 
 
 def global_plots(ex: Explainer, Xte: pd.DataFrame) -> None:
@@ -114,7 +129,7 @@ def worked_examples(ex: Explainer, te: pd.DataFrame, Xte: pd.DataFrame) -> list:
     idx = pick((pred == 1) & (y == 1), 2) + pick((pred == 0) & (y == 0), 2) + pick(pred != y, 1)
     out = []
     for i in idx:
-        r = ex.analyze(te[TEXT_COL].iloc[i])
+        r = ex.analyze(te[TEXT_COL].iloc[i], chunk=False)  # the report shows the model as evaluated: whole texts
         out.append({"test_row": int(i), "text": te[TEXT_COL].iloc[i], "annotator_label": int(y[i]),
                     "stress_score": round(r["stress_score"], 3), "predicted": int(pred[i]),
                     "explanation": r["explanation"], "features": {k: round(v, 4) for k, v in r["features"].items()}})

@@ -13,8 +13,8 @@ interface FreeformEditorProps {
 
 const MAX_CHARS = 5000
 const STEADY_WORDS = 30
-// Dreaddit texts top out around 310 words (ml/REPORT.md), so longer entries are outside the training range
-const LONG_WORDS = 300
+// The API scores entries over 150 words in parts and averages them (DECISIONS D-17)
+const LONG_WORDS = 150
 
 // Development only: a crisis phrase must never be one click away for a real student
 const SAMPLE_ENTRIES = import.meta.env.DEV ? [
@@ -58,7 +58,7 @@ export const FreeformEditor: React.FC<FreeformEditorProps> = ({
 
   let hint = `About ${STEADY_WORDS} words or more gives a steadier reading`
   if (words >= STEADY_WORDS) hint = 'Enough for a steadier reading'
-  if (words > LONG_WORDS) hint = 'Much longer than the texts the model learned from'
+  if (words > LONG_WORDS) hint = 'Long entries are scored in parts and averaged'
 
   return (
     <div className="animate-fade-in">

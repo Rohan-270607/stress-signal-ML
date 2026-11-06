@@ -32,6 +32,7 @@ Content type: `application/json`. No authentication (local prototype; add auth b
       "plain_text": "Higher use of first-person singular pronouns (I, me, my) than typical increased the signal."
     }
   ],
+  "pieces": 1,
   "crisis_flag": false,
   "crisis_message": null,
   "disclaimer": "This is not a diagnosis or a substitute for professional care."
@@ -47,6 +48,7 @@ Content type: `application/json`. No authentication (local prototype; add auth b
 | `explanation[].direction` | `"increases"` \| `"decreases"` | Whether the feature pushed the score up or down **relative to an average training text**. |
 | `explanation[].contribution` | float | SHAP value in log-odds. Sign matches `direction` (positive = increases). Use `abs()` for bar lengths; units are not percentages. |
 | `explanation[].plain_text` | string | Ready-to-display English sentence. |
+| `pieces` | int, >= 1 | `1` for texts up to 150 words. For longer texts the service scores pieces of about 100 words and returns the mean, and this is the number of pieces (see "Known behaviours"). Added later; older clients can ignore it. |
 | `crisis_flag` | bool | Set by an **independent rule-based** detector (keywords/regex), not by the ML model. Can be true while `label` is `lower_signal` and vice-versa. |
 | `crisis_message` | string \| null | A fixed, pre-written message with helpline information when `crisis_flag` is true, otherwise `null`. Display verbatim. |
 | `disclaimer` | string | Constant. Display with every result. |
@@ -83,7 +85,11 @@ curl -X POST http://localhost:8000/analyze -H "Content-Type: application/json" \
   crisis-flagged if **any** response has `crisis_flag: true`. **Do not join answers into one long text**: measured on
   training data, ~99% of calm four-answer entries were pushed to "higher". Prompts: `docs/journaling_prompts.json`.
   Texts much longer than ~300 words are outside the range the model was trained on.
-* **Text length itself affects the score** (longer text pushes it up; see `ml/REPORT.md`).
+* **Long texts are scored in pieces.** Over 150 words, the text is cut into pieces of about 100 words at sentence
+  boundaries, each piece is scored, and `stress_score` is the mean (`pieces` says how many). Without this, a long calm text
+  scored "higher" mostly because of its length (measured: `ml/DECISIONS.md` D-17). For these texts `explanation` is the
+  average per-feature contribution (approximate) and never includes `word_count`. The crisis check always runs on the whole text.
+* **Texts of about 100-150 words are still scored whole**, so a milder length effect remains there.
 * **The model is weak by design** (see `ml/REPORT.md`): about 73% F1 on Reddit data. Present the score as a soft
   signal, not a verdict.
 * Text is processed in memory and **not stored or logged** by the service.

@@ -28,6 +28,7 @@ export interface AnalysisResponse {
   stress_score: number // float, 0-1
   label: 'higher_signal' | 'lower_signal'
   explanation: FeatureExplanation[]
+  pieces?: number // 1 for short texts; >1 when a long text was scored in parts (D-17)
   crisis_flag: boolean
   crisis_message: string | null
   disclaimer: string

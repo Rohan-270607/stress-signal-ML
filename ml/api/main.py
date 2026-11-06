@@ -60,6 +60,7 @@ class AnalyzeResponse(BaseModel):
     stress_score: float = Field(..., ge=0, le=1)
     label: Literal["higher_signal", "lower_signal"]
     explanation: List[Reason]
+    pieces: int = Field(1, ge=1, description="1 for short texts; >1 when a long text was scored in parts (D-17).")
     crisis_flag: bool
     crisis_message: Optional[str]
     disclaimer: str = DISCLAIMER
@@ -86,6 +87,7 @@ def analyze(req: AnalyzeRequest):
         stress_score=round(score, 4),
         label="higher_signal" if score >= THRESHOLD else "lower_signal",
         explanation=r["explanation"],
+        pieces=r.get("pieces", 1),
         crisis_flag=crisis.flag,
         crisis_message=crisis.message,
     )
