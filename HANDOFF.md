@@ -63,10 +63,10 @@ Division of work (decided by the user): **project owner (the user) = ML track + 
 | 15 | Validate on consented student journal data before any real use | Owner + teammate | Not started |
 | 16 | Write the fixed list of guided journaling prompts (human-written, reviewed; see section 8a) | Owner + teammate | **Drafted and wired, NOT reviewed.** `docs/journaling_prompts.json` is a DRAFT; a person (ideally a counsellor) must review it. The UI says "Draft prompts, pending review" until then |
 | 17 | Decide how answers are scored (section 8a) | Owner + teammate | Provisional: per-answer mean implemented in the frontend (DECISIONS D-15); team to confirm |
-| 18 | Roadmap: student diary, typed + photo capture (section 10) | Owner | In progress: Phase 0 done; Phase 1 step 4 (chunking) done 2026-11-06, step 5 (confidence weighting) done 2026-11-07 with no change, step 6 (`/safety-check`) done 2026-11-07; Phase 2 (typed diary) next |
+| 18 | Roadmap: student diary, typed + photo capture (section 10) | Owner | In progress: Phases 0-2 done (typed diary built 2026-11-07, optional lock deferred by the user). Phase 3 (photo capture) next |
 
-Last verified: 107 backend tests pass (feature extractor 13, safety 40, API 37, prompts 3, chunking 14); frontend `npm run build` and
-`npm run lint` clean. The frontend has no automated tests yet (Phase 2, step 12). Everything in rows 0-8 was actually run;
+Last verified: 107 backend tests pass (feature extractor 13, safety 40, API 37, prompts 3, chunking 14); frontend `npm test`
+(40 tests), `npm run build` and `npm run lint` clean. Everything in rows 0-8 was actually run;
 the numbers in `ml/REPORT.md` were produced by the code, not typed by hand.
 
 ## 3. GitHub repository and collaboration
@@ -134,6 +134,9 @@ python -m venv .venv
 .venv\Scripts\python -m src.final_eval                               # reproducibility + leakage assertions
 ```
 
+Frontend (from `T:\project_specularontend`): `npm install`, `npm run dev` (needs the API on port 8000), `npm test`
+(expect 40 passed), `npm run build`, `npm run lint`. Dev-only sample buttons, including a crisis phrase, appear only under `npm run dev`.
+
 Always run from `ml/` with `python -m ...`.
 If Windows reports "An Application Control policy has blocked this file", that is an OS security policy. Do not work
 around it; tell the user.
@@ -173,7 +176,7 @@ Errors: `422` (bad input, FastAPI default body) and `503` (model failed; body st
    If you change data, features or models, re-run `src.final_eval` and update `ml/REPORT.md` and `ml/DECISIONS.md`.
 5. **Do not commit or redistribute** `ml/lexicons/negative_emotion.txt` or `ml/data/raw/` (NRC licence forbids
    redistribution; it is git-ignored, keep it that way).
-6. **Do not log or store user text.**
+6. **Do not log or store user text on any server.** The only storage is the diary's entries in the student's own browser (localStorage, 7 days, deletable; section 10). Never send diary text anywhere except the analysis API.
 7. **Work step by step** (section 0): one task finished and fully checked before the next.
 8. **Report honestly.** Never claim a result you did not run. Note any decision in `ml/DECISIONS.md`.
 9. Treat scores as a soft signal: the model is weak by design (see REPORT limitations). Short texts (<30 words) give
@@ -262,8 +265,8 @@ Decisions made as defaults, to be confirmed by the team:
 |---|---|---|
 | 0 | DONE 2026-11-06: push and merge `frontend-polish`, update this file; teammate is a collaborator | Owner |
 | 1 | Backend groundwork. Step 4 chunking: DONE (D-17). Step 5 confidence weighting: DONE, no change (D-18, rule not met). Step 6 safety-at-save: DONE 2026-11-07 (`POST /safety-check`, D-19). Step 7 contract/tests/decisions (kept up to date as each step lands) | Owner |
-| 2 | Typed diary: 7-day on-device storage, week view, signal check, optional lock, frontend tests | Owner |
-| 3 | Photo capture: on-device reading, correction step, honest limits | Owner |
+| 2 | DONE 2026-11-07: typed diary (Diary tab): 7-day on-device storage with auto-expiry and delete-all, week bar, safety check on every save, signal check with per-day ticks, 40 frontend tests. The optional lock was skipped by the user and can be added later | Owner |
+| 3 | Photo capture: on-device reading, correction step, honest limits (next) | Owner |
 | 4 | SKIPPED for personal use (counsellor review, ethics approval, consent + questionnaire, recruitment). Needed again if others use it | People |
 | 5 | Offline model improvements that need no new people (learning curve, confidence weighting, chunking, extra features). Validation against real students stays impossible without data | Owner |
 | 6 | SKIPPED for personal use (login, hosting, privacy policy, human support path). Local only | Owner + institution |

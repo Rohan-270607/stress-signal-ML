@@ -86,8 +86,12 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
           <section className="modal-section">
             <h3>Your text</h3>
             <p>
-              Your text is processed in memory and isn't stored or logged by the service. Here in the browser it's kept
-              only while this page is open.
+              The analysis service processes your text in memory and doesn't store or log it. Free writing and guided
+              answers are kept in the browser only while this page is open.
+            </p>
+            <p>
+              The diary is the exception: its entries are saved in this browser, on this device only, and are deleted
+              after 7 days. Anyone who can use this browser profile can read them, and you can delete them all at any time.
             </p>
           </section>
         </div>

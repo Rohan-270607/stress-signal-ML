@@ -3,7 +3,9 @@ import { AboutModal } from './components/AboutModal'
 import { CrisisBanner } from './components/CrisisBanner'
 import { FreeformEditor } from './components/FreeformEditor'
 import { GuidedJournal } from './components/GuidedJournal'
+import { DiaryView } from './components/DiaryView'
 import { Header } from './components/Header'
+import type { Tab } from './components/Header'
 import { MultiResultView } from './components/MultiResultView'
 import { ResultView } from './components/ResultView'
 import { MANDATORY_DISCLAIMER } from './data/prompts'
@@ -12,7 +14,7 @@ import type { AppError } from './services/api'
 import type { AnalysisResponse, MultiAnswerAnalysisResult } from './types'
 
 export function App() {
-  const [activeTab, setActiveTab] = useState<'freeform' | 'guided'>('freeform')
+  const [activeTab, setActiveTab] = useState<Tab>('freeform')
   const [aboutOpen, setAboutOpen] = useState(false)
 
   // Crisis state: non-negotiable rule 2, persists across views if triggered
@@ -29,12 +31,14 @@ export function App() {
   // Results
   const [freeformResult, setFreeformResult] = useState<AnalysisResponse | null>(null)
   const [guidedResult, setGuidedResult] = useState<MultiAnswerAnalysisResult | null>(null)
+  const [diaryDrafts, setDiaryDrafts] = useState<Record<string, string>>({})
+  const [diaryResult, setDiaryResult] = useState<MultiAnswerAnalysisResult | null>(null)
 
   // The crisis panel sits at the top of the page, and the browser's scroll anchoring would otherwise
   // keep the view on the content below it. A new result should also start from the top.
   useEffect(() => {
     window.scrollTo(0, 0)
-  }, [crisisMessage, freeformResult, guidedResult])
+  }, [crisisMessage, freeformResult, guidedResult, diaryResult])
 
   const handleFreeformAnalyze = async (text: string) => {
     setIsLoading(true)
@@ -57,7 +61,7 @@ export function App() {
     }
   }
 
-  const handleSelectTab = (tab: 'freeform' | 'guided') => {
+  const handleSelectTab = (tab: Tab) => {
     setActiveTab(tab)
     setError(null)
   }
@@ -125,6 +129,16 @@ export function App() {
                 error={error}
               />
             )
+          )}
+
+          {activeTab === 'diary' && (
+            <DiaryView
+              drafts={diaryDrafts}
+              onDraftsChange={setDiaryDrafts}
+              result={diaryResult}
+              onResult={setDiaryResult}
+              onCrisis={setCrisisMessage}
+            />
           )}
         </div>
       </main>

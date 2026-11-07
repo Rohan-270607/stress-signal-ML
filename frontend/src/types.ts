@@ -34,6 +34,13 @@ export interface AnalysisResponse {
   disclaimer: string
 }
 
+/** POST /safety-check: the crisis check on its own (docs/api_contract.md). */
+export interface SafetyResponse {
+  crisis_flag: boolean
+  crisis_message: string | null
+  disclaimer: string
+}
+
 export interface ApiErrorResponse {
   detail?: string | Array<{ type: string; loc: string[]; msg: string }>
   crisis_flag?: boolean

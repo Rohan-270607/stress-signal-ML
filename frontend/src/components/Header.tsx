@@ -1,15 +1,18 @@
 import React from 'react'
 
 interface HeaderProps {
-  activeTab: 'freeform' | 'guided'
-  onSelectTab: (tab: 'freeform' | 'guided') => void
+  activeTab: Tab
+  onSelectTab: (tab: Tab) => void
   onOpenAbout: () => void
 }
 
-const TABS = [
+export type Tab = 'freeform' | 'guided' | 'diary'
+
+const TABS: { id: Tab; label: string }[] = [
   { id: 'freeform', label: 'Free writing' },
-  { id: 'guided', label: 'Guided prompts' }
-] as const
+  { id: 'guided', label: 'Guided prompts' },
+  { id: 'diary', label: 'Diary' }
+]
 
 export const Header: React.FC<HeaderProps> = ({
   activeTab,

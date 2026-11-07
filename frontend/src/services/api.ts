@@ -1,4 +1,4 @@
-import type { AnalysisRequest, AnalysisResponse, ApiErrorResponse } from '../types'
+import type { AnalysisRequest, AnalysisResponse, ApiErrorResponse, SafetyResponse } from '../types'
 import { MANDATORY_DISCLAIMER } from '../data/prompts'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
@@ -107,4 +107,23 @@ export async function analyzeText(req: AnalysisRequest): Promise<AnalysisRespons
     disclaimer,
     safetyRan
   )
+}
+
+/**
+ * Crisis check only: POST /safety-check. No score and no model, so it also works when the model is down.
+ * A diary calls it on every save. A network failure throws an ApiError with safetyRan = false.
+ */
+export async function checkSafety(text: string): Promise<SafetyResponse> {
+  let res: Response
+  try {
+    res = await fetch(`${API_BASE}/safety-check`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ text })
+    })
+  } catch {
+    throw new ApiError("We couldn't reach the service that runs the safety check.", 0)
+  }
+  if (!res.ok) throw new ApiError(`The safety check failed (HTTP ${res.status}).`, res.status)
+  return (await res.json()) as SafetyResponse
 }
