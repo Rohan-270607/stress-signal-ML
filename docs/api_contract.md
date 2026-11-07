@@ -93,3 +93,37 @@ curl -X POST http://localhost:8000/analyze -H "Content-Type: application/json" \
 * **The model is weak by design** (see `ml/REPORT.md`): about 73% F1 on Reddit data. Present the score as a soft
   signal, not a verdict.
 * Text is processed in memory and **not stored or logged** by the service.
+
+## `POST /safety-check`
+
+The crisis check on its own: no score, no explanation, and the ML model is not used. It exists for callers that must check
+text without scoring it, such as a diary that checks every entry the moment it is saved. It runs the same rules, on the
+whole text, as the crisis part of `/analyze` (a test requires the two to always agree) and it keeps working when the model
+is unavailable. The text is not stored or logged.
+
+### Request
+
+```json
+{ "text": "string, 1-5000 characters, not blank" }
+```
+
+### Response `200 OK`
+
+```json
+{
+  "crisis_flag": true,
+  "crisis_message": "string, the fixed message from the safety layer (null when crisis_flag is false)",
+  "disclaimer": "This is not a diagnosis or a substitute for professional care."
+}
+```
+
+When `crisis_flag` is true, show `crisis_message` verbatim and prominently, exactly as for `/analyze`.
+
+### Errors
+
+| Status | When | Body |
+|---|---|---|
+| `422` | Missing/non-string/blank `text`, or longer than 5000 chars | FastAPI default |
+
+There is no `503`: nothing here depends on the model. The same limits as the rest of the safety layer apply: it only knows
+the phrases on its list, will miss indirect wording and will raise some false alarms (`ml/README.md`).

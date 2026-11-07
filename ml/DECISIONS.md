@@ -243,3 +243,18 @@ the scores overconfident on them.
 better; a few thousandths of log loss would not change the decision. Evidence on Reddit data only.
 **Alternatives:** keep the confidence column for analysis only (done: it is used to report how noisy the labels are, REPORT section 1).
 
+## D-19 A separate crisis-only endpoint for saving diary entries (Phase 1, step 6)
+**Chose:** add `POST /safety-check`, which returns only `crisis_flag`, `crisis_message` and `disclaimer`. It runs the same
+`check_crisis` as `/analyze`, on the whole text, and never touches the ML model. `/analyze` is unchanged.
+**Why:** The diary stores an entry the day it is written, but a score is only computed when the student asks for a signal check,
+which could be days later. A crisis phrase written on Monday must not wait until Friday to be noticed, so the check has to run
+at save time. A dedicated endpoint (a) does not pay for scoring and SHAP on every save (measured on the live API with a
+350-word text: median 4.8 ms vs 13.8 ms for `/analyze`), and (b) keeps working when the model fails, which is the situation
+where the safety path matters most. `tests/test_api.py` checks that it works with a model that raises on any access, that it
+agrees with `/analyze` on the same texts (including a phrase buried in a long entry), and that it validates input the same way.
+**Caveats:** Same rules, so the same limits: English only, phrase list only, misses indirect wording, raises some false
+alarms, and its recall has never been measured (REPORT section 6). The endpoint does not store or log text. Nothing calls it
+yet; the Phase 2 diary will, on every save.
+**Alternatives:** call `/analyze` on every save (works, but slower and fails with the model); run the same patterns in the
+browser (rejected: two copies of the rules would drift apart, and crisis text must come from one reviewed place);
+return the crisis result from a "save entry" endpoint (rejected: the server does not store entries).

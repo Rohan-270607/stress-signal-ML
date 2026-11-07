@@ -66,7 +66,7 @@ Feature extractor demo: `.venv\Scripts\python -m src.features`.
 .venv\Scripts\python -m pytest tests -q
 ```
 
-87 tests: feature extractor (13), safety layer (40), API (17), journaling prompts (3), chunking (14). API tests use the real saved model, so run
+107 tests: feature extractor (13), safety layer (40), API (37), journaling prompts (3), chunking (14). API tests use the real saved model, so run
 `src.train_models` first.
 
 ## Run the API
@@ -75,7 +75,7 @@ Feature extractor demo: `.venv\Scripts\python -m src.features`.
 .venv\Scripts\python -m uvicorn api.main:app --port 8000
 ```
 
-* Docs UI: `http://localhost:8000/docs` · Health: `GET /health` · Contract: `../docs/api_contract.md`
+* Docs UI: `http://localhost:8000/docs` · Health: `GET /health` · Crisis check only: `POST /safety-check` · Contract: `../docs/api_contract.md`
 * Example:
 
 ```powershell

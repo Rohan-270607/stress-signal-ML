@@ -63,9 +63,9 @@ Division of work (decided by the user): **project owner (the user) = ML track + 
 | 15 | Validate on consented student journal data before any real use | Owner + teammate | Not started |
 | 16 | Write the fixed list of guided journaling prompts (human-written, reviewed; see section 8a) | Owner + teammate | **Drafted and wired, NOT reviewed.** `docs/journaling_prompts.json` is a DRAFT; a person (ideally a counsellor) must review it. The UI says "Draft prompts, pending review" until then |
 | 17 | Decide how answers are scored (section 8a) | Owner + teammate | Provisional: per-answer mean implemented in the frontend (DECISIONS D-15); team to confirm |
-| 18 | Roadmap: student diary, typed + photo capture (section 10) | Owner | In progress: Phase 0 done; Phase 1 step 4 (chunking) done 2026-11-06, step 5 (confidence weighting) done 2026-11-07 with no change, steps 6-7 next |
+| 18 | Roadmap: student diary, typed + photo capture (section 10) | Owner | In progress: Phase 0 done; Phase 1 step 4 (chunking) done 2026-11-06, step 5 (confidence weighting) done 2026-11-07 with no change, step 6 (`/safety-check`) done 2026-11-07; Phase 2 (typed diary) next |
 
-Last verified: 87 backend tests pass (feature extractor 13, safety 40, API 17, prompts 3, chunking 14); frontend `npm run build` and
+Last verified: 107 backend tests pass (feature extractor 13, safety 40, API 37, prompts 3, chunking 14); frontend `npm run build` and
 `npm run lint` clean. The frontend has no automated tests yet (Phase 2, step 12). Everything in rows 0-8 was actually run;
 the numbers in `ml/REPORT.md` were produced by the code, not typed by hand.
 
@@ -128,7 +128,7 @@ python -m venv .venv
 .venv\Scripts\python -m src.build_nrc_lexicon
 
 # everyday
-.venv\Scripts\python -m pytest tests -q                              # expect 87 passed
+.venv\Scripts\python -m pytest tests -q                              # expect 107 passed
 .venv\Scripts\python -m uvicorn api.main:app --port 8000             # API at http://localhost:8000/docs
 .venv\Scripts\python -m src.train_models                             # retrain + re-save the model
 .venv\Scripts\python -m src.final_eval                               # reproducibility + leakage assertions
@@ -155,6 +155,8 @@ around it; tell the user.
   "disclaimer": "This is not a diagnosis or a substitute for professional care."
 }
 ```
+
+`POST /safety-check` with the same request body returns only `{"crisis_flag", "crisis_message", "disclaimer"}` (no model, no 503); call it when saving text without scoring it.
 
 Errors: `422` (bad input, FastAPI default body) and `503` (model failed; body still has `crisis_flag`,
 `crisis_message`, `disclaimer`). CORS defaults: `http://localhost:3000`, `http://localhost:5173`
@@ -229,7 +231,7 @@ Design rules:
 
 | Question | File |
 |---|---|
-| Why was X chosen? | `ml/DECISIONS.md` (D-01 to D-18) |
+| Why was X chosen? | `ml/DECISIONS.md` (D-01 to D-19) |
 | How good is it, limits, ethics | `ml/REPORT.md` |
 | How to run / edit lexicons / safety limits | `ml/README.md` |
 | API shapes | `docs/api_contract.md` |
@@ -259,7 +261,7 @@ Decisions made as defaults, to be confirmed by the team:
 | Phase | Work | Who |
 |---|---|---|
 | 0 | DONE 2026-11-06: push and merge `frontend-polish`, update this file; teammate is a collaborator | Owner |
-| 1 | Backend groundwork. Step 4 chunking: DONE (D-17). Step 5 confidence weighting: DONE, no change (D-18, rule not met). Step 6 safety-at-save: next. Step 7 contract/tests/decisions (kept up to date as each step lands) | Owner |
+| 1 | Backend groundwork. Step 4 chunking: DONE (D-17). Step 5 confidence weighting: DONE, no change (D-18, rule not met). Step 6 safety-at-save: DONE 2026-11-07 (`POST /safety-check`, D-19). Step 7 contract/tests/decisions (kept up to date as each step lands) | Owner |
 | 2 | Typed diary: 7-day on-device storage, week view, signal check, optional lock, frontend tests | Owner |
 | 3 | Photo capture: on-device reading, correction step, honest limits | Owner |
 | 4 | SKIPPED for personal use (counsellor review, ethics approval, consent + questionnaire, recruitment). Needed again if others use it | People |

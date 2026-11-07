@@ -94,3 +94,53 @@ def test_crisis_phrase_deep_in_a_long_text_is_still_flagged(client):
     text = CALM * 12 + "Some days I want to end my life. " + CALM * 12
     b = client.post("/analyze", json={"text": text}).json()
     assert b["pieces"] > 1 and b["crisis_flag"] is True and b["crisis_message"] == CRISIS_MESSAGE
+
+
+# ---------- POST /safety-check (DECISIONS D-19) ----------
+SAFETY_TEXTS = [
+    "I want to kill myself", "I just want to end my life", "I've been thinking about suicide a lot",
+    "I've started cutting myself again", "I wish I was dead",
+    CALM * 12 + "Some days I want to end my life. " + CALM * 12,     # deep inside a long entry
+    "This exam is killing me but I will be fine", CALM, "I never get anything right and I am so afraid.",
+]
+
+
+def test_safety_check_flags_crisis_text_with_the_fixed_message(client):
+    r = client.post("/safety-check", json={"text": "I want to end my life"})
+    b = r.json()
+    assert r.status_code == 200
+    assert set(b) == {"crisis_flag", "crisis_message", "disclaimer"}
+    assert b["crisis_flag"] is True and b["crisis_message"] == CRISIS_MESSAGE and b["disclaimer"] == DISCLAIMER
+
+
+def test_safety_check_does_not_flag_everyday_text(client):
+    b = client.post("/safety-check", json={"text": CALM}).json()
+    assert b["crisis_flag"] is False and b["crisis_message"] is None
+
+
+@pytest.mark.parametrize("text", SAFETY_TEXTS)
+def test_safety_check_agrees_with_analyze(client, text):
+    # one set of rules: the two endpoints must never disagree about the same text
+    a = client.post("/analyze", json={"text": text}).json()
+    s = client.post("/safety-check", json={"text": text}).json()
+    assert (s["crisis_flag"], s["crisis_message"]) == (a["crisis_flag"], a["crisis_message"])
+
+
+def test_safety_check_works_when_the_model_is_unavailable(client, monkeypatch):
+    class Broken:
+        def __getattr__(self, name):
+            raise RuntimeError("the model must not be touched")
+    monkeypatch.setitem(state, "explainer", Broken())
+    r = client.post("/safety-check", json={"text": "I want to kill myself"})
+    assert r.status_code == 200 and r.json()["crisis_flag"] is True and r.json()["crisis_message"] == CRISIS_MESSAGE
+
+
+@pytest.mark.parametrize("body", [{}, {"text": ""}, {"text": "   \n"}, {"text": 123}, {"text": None},
+                                  {"text": "x" * 5001}, {"wrong": "a"}])
+def test_safety_check_rejects_bad_input(client, body):
+    assert client.post("/safety-check", json=body).status_code == 422
+
+
+def test_safety_check_accepts_the_longest_allowed_entry(client):
+    assert client.post("/safety-check", json={"text": "word " * 1000}).status_code == 200  # 5000 chars exactly
+

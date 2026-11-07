@@ -66,6 +66,12 @@ class AnalyzeResponse(BaseModel):
     disclaimer: str = DISCLAIMER
 
 
+class SafetyResponse(BaseModel):
+    crisis_flag: bool
+    crisis_message: Optional[str]
+    disclaimer: str = DISCLAIMER
+
+
 @app.get("/health")
 def health():
     return {"status": "ok", "model_loaded": "explainer" in state}
@@ -91,3 +97,16 @@ def analyze(req: AnalyzeRequest):
         crisis_flag=crisis.flag,
         crisis_message=crisis.message,
     )
+
+
+@app.post("/safety-check", response_model=SafetyResponse)
+def safety_check(req: AnalyzeRequest):
+    """Crisis check only: no score, no explanation, and the ML model is not touched.
+
+    For callers that must check text without scoring it, such as a diary that checks every entry the moment it is saved
+    (DECISIONS D-19). It runs the same rules, on the whole text, as the crisis part of /analyze, and it keeps working
+    when the model is unavailable. Like /analyze, it does not store or log the text.
+    """
+    crisis = check_crisis(req.text)
+    return SafetyResponse(crisis_flag=crisis.flag, crisis_message=crisis.message)
+
