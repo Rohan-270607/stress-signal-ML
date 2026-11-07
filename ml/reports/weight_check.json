@@ -1,0 +1,57 @@
+{
+  "rule": "gain >= 0.005, better in >= 4/5 runs, AUC not worse",
+  "repeats": 5,
+  "C": 0.1,
+  "variants": {
+    "base": {
+      "logloss": 0.5501,
+      "gain_vs_base": 0.0,
+      "runs_better_than_base": 0,
+      "auc": 0.7923,
+      "f1": 0.7392,
+      "logloss_clear_rows": 0.4685,
+      "fit_rows": 2813,
+      "meets_rule": false
+    },
+    "weight_conf": {
+      "logloss": 0.5505,
+      "gain_vs_base": -0.0004,
+      "runs_better_than_base": 0,
+      "auc": 0.7932,
+      "f1": 0.7423,
+      "logloss_clear_rows": 0.461,
+      "fit_rows": 2813,
+      "meets_rule": false
+    },
+    "weight_conf3": {
+      "logloss": 0.5562,
+      "gain_vs_base": -0.0062,
+      "runs_better_than_base": 0,
+      "auc": 0.7939,
+      "f1": 0.742,
+      "logloss_clear_rows": 0.4533,
+      "fit_rows": 2813,
+      "meets_rule": false
+    },
+    "drop_lt_0.6": {
+      "logloss": 0.5519,
+      "gain_vs_base": -0.0019,
+      "runs_better_than_base": 0,
+      "auc": 0.7937,
+      "f1": 0.7457,
+      "logloss_clear_rows": 0.4593,
+      "fit_rows": 2410,
+      "meets_rule": false
+    },
+    "drop_lt_0.7": {
+      "logloss": 0.5633,
+      "gain_vs_base": -0.0132,
+      "runs_better_than_base": 0,
+      "auc": 0.7942,
+      "f1": 0.745,
+      "logloss_clear_rows": 0.4512,
+      "fit_rows": 1847,
+      "meets_rule": false
+    }
+  }
+}

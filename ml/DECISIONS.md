@@ -222,3 +222,24 @@ accuracy of scoring each text separately.
 **Alternatives:** raise the 5,000-character limit's guidance only (does not fix the bias); retrain with long texts or without
 `word_count` (a bigger change, left for Phase 5); a pretrained long-text model (rejected earlier, see the discussion in D-14).
 
+## D-18 Annotator agreement is not used when fitting (Phase 1, step 5)
+**Chose:** keep the model as it is: every training row counts the same. No retrain, no change to the saved model.
+**Why (measured, `src/weight_check.py`, out-of-fold on train only, 5 repeated grouped 5-fold runs, all 2,813 validation rows,
+C = 0.1; results in `reports/weight_check.json`):**
+| variant (how rows are used when fitting) | log loss | gain vs base | runs better than base | AUC | F1 |
+|---|---|---|---|---|---|
+| base (every row equal) | 0.5501 | - | - | 0.7923 | 0.739 |
+| weight each row by confidence | 0.5505 | -0.0004 | 0/5 | 0.7932 | 0.742 |
+| weight by confidence cubed | 0.5562 | -0.0062 | 0/5 | 0.7939 | 0.742 |
+| drop rows with confidence < 0.6 | 0.5519 | -0.0019 | 0/5 | 0.7937 | 0.746 |
+| drop rows with confidence < 0.7 (a third of the data) | 0.5633 | -0.0132 | 0/5 | 0.7942 | 0.745 |
+The rule was fixed before the run: adopt only if log loss improves by at least 0.005, in at least 4 of 5 runs, with AUC not
+worse. No variant came close: log loss got worse in every run for every variant.
+**What did move:** AUC rose by 0.001-0.002 and F1 by 0.003-0.007 for the variants, and log loss on the clear rows (confidence
+>= 0.8) improved, e.g. 0.4685 -> 0.4512 when dropping the doubtful rows. Those gains are small enough to be noise. The log-loss
+loss is plausible: the doubtful texts are the ambiguous ones the app will also meet, so training only on clear ones makes
+the scores overconfident on them.
+**Caveat:** I reused C = 0.1 for every variant rather than re-tuning it per variant. A re-tuned weighted model might do slightly
+better; a few thousandths of log loss would not change the decision. Evidence on Reddit data only.
+**Alternatives:** keep the confidence column for analysis only (done: it is used to report how noisy the labels are, REPORT section 1).
+

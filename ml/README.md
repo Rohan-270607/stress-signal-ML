@@ -10,7 +10,7 @@ It never diagnoses and never gives advice. Read `REPORT.md` for results and `DEC
 ml/
   src/            config.py data.py explore.py baseline.py features.py train_models.py explain.py
                   safety.py final_eval.py metrics.py tuning.py build_nrc_lexicon.py
-                  chunking.py design_checks.py chunk_check.py
+                  chunking.py design_checks.py chunk_check.py weight_check.py
   lexicons/       plain-text word lists you can edit (one word per line, # = comment)
   api/main.py     FastAPI app            ../docs/api_contract.md = the contract for the frontend
   tests/          pytest (features, safety, API)
@@ -55,6 +55,7 @@ Always run from `ml/` with `python -m ...` so imports resolve.
 .venv\Scripts\python -m src.final_eval     # reproducibility check, bootstrap CIs, leakage assertions
 .venv\Scripts\python -m src.design_checks   # threshold table + multi-answer scoring evidence (D-08, D-15)
 .venv\Scripts\python -m src.chunk_check     # does scoring long text in pieces help? (D-17) -> reports/chunk_check.json
+.venv\Scripts\python -m src.weight_check    # does weighting by annotator agreement help? (D-18) -> reports/weight_check.json
 ```
 
 Feature extractor demo: `.venv\Scripts\python -m src.features`.
