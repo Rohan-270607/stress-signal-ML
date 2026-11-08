@@ -40,8 +40,8 @@ HANDOFF.md               <- this file
 
 ## 2. Task board: who does what, and what is completed
 
-Division of work (decided by the user): **project owner (the user) = ML track + safety + API + docs**;
-**teammate = frontend**, starting after her exams. The user is covering for her only if they say so explicitly.
+Division of work: **project owner (the user) = ML track + safety + API + docs**; **teammate = frontend**. The remaining work
+is split between the two of them in **section 11** (task ids A1-A5 and B1-B6).
 
 | # | Task | Owner | Status |
 |---|---|---|---|
@@ -198,7 +198,7 @@ Errors: `422` (bad input, FastAPI default body) and `503` (model failed; body st
    wording ("Support is available" and the "safety check couldn't run" line in `frontend/src`). Crisis text is meant to be
    human-written and reviewed.
 
-## 8. Next task (when the user says go): the frontend
+## 8. The frontend (DONE: task 13; kept for reference. The next work is in section 11)
 
 Build a small web UI against `docs/api_contract.md`. Suggested scope:
 - A textarea for the journal entry (max 5000 chars, show remaining count), an "Analyse" button, loading and error states.
@@ -266,12 +266,85 @@ Decisions made as defaults, to be confirmed by the team:
 | 0 | DONE 2026-11-06: push and merge `frontend-polish`, update this file; teammate is a collaborator | Owner |
 | 1 | Backend groundwork. Step 4 chunking: DONE (D-17). Step 5 confidence weighting: DONE, no change (D-18, rule not met). Step 6 safety-at-save: DONE 2026-11-07 (`POST /safety-check`, D-19). Step 7 contract/tests/decisions (kept up to date as each step lands) | Owner |
 | 2 | DONE 2026-11-07: typed diary (Diary tab): 7-day on-device storage with auto-expiry and delete-all, week bar, safety check on every save, signal check with per-day ticks, 40 frontend tests. The optional lock was skipped by the user and can be added later | Owner |
-| 3 | Photo capture: on-device reading, correction step, honest limits (next) | Owner |
+| 3 | Photo capture: reading, correction step, honest limits. NEXT, split between A2 and B1 in section 11. Approach not yet chosen: on-device in the browser, or a local Python `/ocr` endpoint (the photo never leaves the machine either way). Use a pretrained reader, not one trained from scratch; test candidates on the user's own photos first | Owner + teammate |
 | 4 | SKIPPED for personal use (counsellor review, ethics approval, consent + questionnaire, recruitment). Needed again if others use it | People |
 | 5 | Offline model improvements that need no new people (learning curve, confidence weighting, chunking, extra features). Validation against real students stays impossible without data | Owner |
 | 6 | SKIPPED for personal use (login, hosting, privacy policy, human support path). Local only | Owner + institution |
 
-Gates: keep the safety layer, the disclaimer and the honest wording even for personal use (the app handles mental-health
+Gates (these apply to both people): keep the safety layer, the disclaimer and the honest wording even for personal use (the app handles mental-health
 text, and the model is weak). Do not claim the score is validated; there is no student data behind it. If anyone else will
 use it, restore the counsellor review of prompts and crisis wording first; if data is collected from others, ethics
 approval and consent come first.
+
+## 11. Two-person work split (agreed with the user 2026-11-08)
+
+Two people share the remaining work. **A = the project owner (the user):** ML, safety, API and docs. **B = the teammate:**
+frontend. Either of you can swap a task with the other; if you do, edit the tables below in the same commit.
+The standing rules (sections 0 and 6) apply to each person and to any agent they use. Section 0 means: one task at a time,
+finished and checked before the next.
+
+### Where things stand (2026-11-08)
+
+* **Built and tested:** the ML track, the API (`/analyze`, `/safety-check`, `/health`), long-text chunking (D-17), the
+  light "Bone and burgundy" frontend, guided prompts, and the 7-day typed diary (Diary tab). **107 backend tests and 40
+  frontend tests pass**; the frontend builds and lints clean.
+* **Not built:** photo capture; the diary lock (the user postponed it); the frontend accessibility pass.
+* **Decided and recorded:** `ml/DECISIONS.md` D-01 to D-19. Not re-opened unless new evidence arrives.
+* **Before starting any task, `git pull` on `main`.** The diary and Phase 1 backend work were committed locally and must be
+  pushed first (task A1).
+
+### Person A (the owner): backend, ML, docs
+
+| # | Work | Depends on | Done when |
+|---|---|---|---|
+| A1 | Push the local commits to GitHub (needs an explicit yes, rule 6 in section 0) | nothing | `main` and `origin/main` match |
+| A2-0 | Agree the `/ocr` contract with B **first** (about an hour): request, response, limits (image size, formats), errors. Write it in `docs/api_contract.md`. | nothing | B can build against a fake endpoint |
+| A2 | **Photo reading, backend side.** (a) Collect 5-10 photos of the user's own pages with typed copies, in `ml/data/raw/ocr_samples/` (git-ignored: never commit them). (b) Compare candidate readers by character error rate on those samples: Tesseract, TrOCR (handwriting; it reads one line at a time, so a page needs line splitting) and one whole-page reader. (c) Pick one with the numbers; fine-tune it on the user's handwriting only if the best is too weak. (d) Build `POST /ocr` (photo in, text out) with tests. The photo is never stored or logged. | A2-0 | endpoint tested; measured error rates recorded in `ml/DECISIONS.md` |
+| A3 | Safety layer: add indirect phrases it misses (for example "I just want it to stop"). A person reviews each phrase before it goes in, because it also raises false alarms. Add tests and update `ml/README.md`. | B5 (wording review) | tests pass; limits documented |
+| A4 | Offline model improvements, each one measured on the training data first against a rule fixed before the run (as in `src/chunk_check.py` and `src/weight_check.py`): learning curve, extra word patterns, a fairer treatment of length, the 100-150 word range. The test set stays untouched. | nothing | result recorded as a new D-number, adopted or rejected |
+| A5 | Keep `ml/DECISIONS.md`, `ml/REPORT.md`, `ml/README.md`, `docs/api_contract.md` and this file current. Review any change to `ml/` or the contract. | ongoing | docs match the code |
+
+### Person B (the teammate): frontend
+
+| # | Work | Depends on | Done when |
+|---|---|---|---|
+| B1 | **Photo reading, frontend side.** In the Diary: a camera/upload button; a screen that shows the extracted text for the student to **correct before saving**; a notice that text read from a photo is less reliable and so is its score; the photo is discarded after reading and never stored. Build against a fake `/ocr` until A2 is ready. | A2-0 | works against the fake and then the real endpoint; tests added |
+| B2 | Optional diary lock (a PIN screen). Keep the wording honest: it hides entries from casual viewing and is not encryption. | nothing | tested |
+| B3 | Accessibility pass: keyboard-only use, a screen reader, focus kept inside the About window. | nothing | issues found are fixed or listed |
+| B4 | Polish: self-host the fonts (the app currently contacts Google Fonts on load), delete unused starter files (`App.css`, `assets/hero.png`, `react.svg`, `vite.svg`, `public/icons.svg`), and add one command that starts the API and the frontend together. | nothing | `npm run build` and `npm test` still pass |
+| B5 | Review the 6 draft guided prompts (`docs/journaling_prompts.json`) and the crisis-panel wording ("Support is available" and the "safety check couldn't run" line in `frontend/src`). Edit them if needed. Crisis text must be human-written. | nothing | wording agreed by both; the "Draft prompts" label is removed once reviewed |
+| B6 | Keep `frontend/README.md` and the frontend tests current. | ongoing | docs match the code |
+
+### Decided together
+
+The 0.5 threshold (D-08), the per-answer averaging (D-15), and which helplines to show and in what order (task 10).
+Record each outcome in `ml/DECISIONS.md` or section 7.
+
+### How to avoid getting in each other's way
+
+* **Folders:** A works in `ml/` and `docs/`; B works in `frontend/`. The API contract is the one shared file: A signs off
+  every change to it, and any API change updates `docs/api_contract.md` in the same commit.
+* **Branches:** B works on a branch such as `frontend-photo` and opens a pull request into `main`. A reviews anything that
+  touches `ml/` or the contract. A can commit straight to `main` for `ml/` and `docs/`.
+* **Contract first:** A2-0 comes before A2 and B1, so B is never blocked waiting for the model.
+* **Sync points:** (1) after A1 and A2-0; (2) when A2 and B1 are both ready, to join them and test with real photos;
+  (3) before any change to the safety layer (A3 and B5).
+* **Suggested order:** A1, A2-0, A5 and B3-B5 first, in parallel; then A2 with B1; then join and test; then A3, A4 and B2.
+
+### Starting up (either person)
+
+```powershell
+git pull
+cd ml; .venv\Scripts\python -m pytest tests -q                  # expect 107 passed
+cd ..\frontend; npm install; npm test                           # expect 40 passed
+```
+
+Run the API (from `ml/`: `.venv\Scripts\python -m uvicorn api.main:app --port 8000`) and the frontend (`npm run dev`) in two
+terminals. B needs the one-time setup in section 3a (virtual environment and the NRC word list) to run the API locally.
+
+### Do not
+
+* Commit sample photos, diary text or `ml/data/raw/`. Never send photos or diary text to a third-party service (cloud OCR
+  included) without the user's explicit yes.
+* Train an OCR model from scratch. Use a pretrained one; fine-tune only if the measured error is too high.
+* Tune on the test set, or claim the score is validated: there is no student data behind it (section 10).
